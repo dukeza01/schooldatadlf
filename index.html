@@ -636,6 +636,10 @@ tbody td.school-name { white-space:normal; max-width:210px; font-weight:600; col
     <select id="filterAffiliation"><option value="">ทั้งหมด</option></select>
   </div>
   <div class="filter-group">
+    <label>หน่วยงาน</label>
+    <select id="filterAgency"><option value="">ทั้งหมด</option></select>
+  </div>
+  <div class="filter-group">
     <label>ปีเป้าหมาย</label>
     <select id="filterYear">
       <option value="">ทั้งหมด</option>
@@ -935,6 +939,7 @@ async function loadData(manual = false) {
         ALL_DATA = rows.map(normalizeRow);
         buildProvinceDropdown();
         buildAffiliationDropdown();
+        buildAgencyDropdown();
         applyFilters();
         hideLoadScreen();
         hideErrorBanner();
@@ -959,6 +964,7 @@ async function loadData(manual = false) {
 
   buildProvinceDropdown();
   buildAffiliationDropdown();
+  buildAgencyDropdown();
   applyFilters();
   hideLoadScreen();
   icon.classList.remove('spin');
@@ -1069,6 +1075,27 @@ function buildAffiliationDropdown() {
   if (cur && affs.includes(cur)) affSel.value = cur;
 }
 
+// ─── AGENCY (หน่วยงาน) DROPDOWN ───────────────────────────
+function buildAgencyDropdown() {
+  const agSel = document.getElementById('filterAgency');
+  const cur = agSel.value;
+  const region = document.getElementById('filterRegion').value;
+  const province = document.getElementById('filterProvince').value;
+  const affiliation = document.getElementById('filterAffiliation').value;
+  agSel.innerHTML = '<option value="">ทั้งหมด</option>';
+  let source = ALL_DATA;
+  if (region)      source = source.filter(r => r['ภูมิภาค'] === region);
+  if (province)    source = source.filter(r => r['จังหวัด'] && r['จังหวัด'].trim() === province.trim());
+  if (affiliation) source = source.filter(r => r['สังกัด'] === affiliation);
+  const agencies = [...new Set(source.map(r => r['หน่วยงาน']).filter(Boolean))].sort((a,b) => a.localeCompare(b,'th'));
+  agencies.forEach(a => {
+    const o = document.createElement('option');
+    o.value = a; o.text = a;
+    agSel.appendChild(o);
+  });
+  if (cur && agencies.includes(cur)) agSel.value = cur;
+}
+
 // ─── EXPORT EXCEL ──────────────────────────────────────────
 function exportToExcel(useAll) {
   const data = useAll ? ALL_DATA : filtered;
@@ -1156,6 +1183,7 @@ function applyFilters() {
   const region  = document.getElementById('filterRegion').value;
   const province= document.getElementById('filterProvince').value;
   const affiliation = document.getElementById('filterAffiliation').value;
+  const agency  = document.getElementById('filterAgency').value;
   const year    = document.getElementById('filterYear').value;
   const size    = document.getElementById('filterSize').value;
   const work    = document.getElementById('filterWork').value;
@@ -1174,6 +1202,7 @@ function applyFilters() {
     if (region && r['ภูมิภาค'] !== region) return false;
     if (province && r['จังหวัด'].trim() !== province.trim()) return false;
     if (affiliation && r['สังกัด'] !== affiliation) return false;
+    if (agency && r['หน่วยงาน'] !== agency) return false;
     if (year && r['เป้าหมายมูลนิธิ ฯ'] !== year) return false;
     if (size && r['ประเภท'] !== size) return false;
     if (work) {
@@ -1807,14 +1836,15 @@ function switchTab(tab) {
 // ─── CLEAR ───────────────────────────────────────────────
 function clearFilters() {
   ['searchInput'].forEach(id => document.getElementById(id).value='');
-  ['filterRegion','filterProvince','filterAffiliation','filterYear','filterSize','filterWork','filterDgb','filterCoord'].forEach(id =>
+  ['filterRegion','filterProvince','filterAffiliation','filterAgency','filterYear','filterSize','filterWork','filterDgb','filterCoord'].forEach(id =>
     document.getElementById(id).value='');
   buildProvinceDropdown();
   buildAffiliationDropdown();
+  buildAgencyDropdown();
   applyFilters();
 }
 
-// ─── REGION → PROVINCE → AFFILIATION CASCADE ─────────────
+// ─── REGION → PROVINCE → AFFILIATION → AGENCY CASCADE ────
 document.getElementById('filterRegion').addEventListener('change', function() {
   const region = this.value;
   const provSel = document.getElementById('filterProvince');
@@ -1827,8 +1857,13 @@ document.getElementById('filterRegion').addEventListener('change', function() {
     o.value=p; o.text=p; provSel.appendChild(o);
   });
   buildAffiliationDropdown();
+  buildAgencyDropdown();
 });
-document.getElementById('filterProvince').addEventListener('change', buildAffiliationDropdown);
+document.getElementById('filterProvince').addEventListener('change', function() {
+  buildAffiliationDropdown();
+  buildAgencyDropdown();
+});
+document.getElementById('filterAffiliation').addEventListener('change', buildAgencyDropdown);
 
 // ─── EVENTS ──────────────────────────────────────────────
 let searchTimer;
@@ -1836,7 +1871,7 @@ document.getElementById('searchInput').addEventListener('input', () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(applyFilters, 280);
 });
-['filterRegion','filterProvince','filterAffiliation','filterYear','filterSize','filterWork','filterDgb','filterCoord'].forEach(id =>
+['filterRegion','filterProvince','filterAffiliation','filterAgency','filterYear','filterSize','filterWork','filterDgb','filterCoord'].forEach(id =>
   document.getElementById(id).addEventListener('change', applyFilters));
 
 // ─── INIT ────────────────────────────────────────────────
