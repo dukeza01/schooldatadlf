@@ -548,6 +548,7 @@ tbody td.school-name { white-space:normal; max-width:210px; font-weight:600; col
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster-src.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -631,6 +632,10 @@ tbody td.school-name { white-space:normal; max-width:210px; font-weight:600; col
     <select id="filterProvince"><option value="">ทั้งหมด</option></select>
   </div>
   <div class="filter-group">
+    <label>สังกัด</label>
+    <select id="filterAffiliation"><option value="">ทั้งหมด</option></select>
+  </div>
+  <div class="filter-group">
     <label>ปีเป้าหมาย</label>
     <select id="filterYear">
       <option value="">ทั้งหมด</option>
@@ -670,6 +675,8 @@ tbody td.school-name { white-space:normal; max-width:210px; font-weight:600; col
     </select>
   </div>
   <button class="btn btn-clear" onclick="clearFilters()">ล้างตัวกรอง</button>
+  <button class="btn" style="background:linear-gradient(135deg,#16a34a,#15803d)" onclick="exportToExcel(false)">📥 Export Excel (ที่กรอง)</button>
+  <button class="btn btn-clear" onclick="exportToExcel(true)">📥 Export Excel (ทั้งหมด)</button>
   <div class="result-count">แสดง <span id="resultCount">—</span> รายการ</div>
 </div>
 
@@ -927,6 +934,7 @@ async function loadData(manual = false) {
       if (rows && rows.length > 0) {
         ALL_DATA = rows.map(normalizeRow);
         buildProvinceDropdown();
+        buildAffiliationDropdown();
         applyFilters();
         hideLoadScreen();
         hideErrorBanner();
@@ -950,6 +958,7 @@ async function loadData(manual = false) {
   }
 
   buildProvinceDropdown();
+  buildAffiliationDropdown();
   applyFilters();
   hideLoadScreen();
   icon.classList.remove('spin');
@@ -1041,6 +1050,68 @@ function buildProvinceDropdown() {
   if (cur) provSel.value = cur;
 }
 
+// ─── AFFILIATION (สังกัด) DROPDOWN ────────────────────────
+function buildAffiliationDropdown() {
+  const affSel = document.getElementById('filterAffiliation');
+  const cur = affSel.value;
+  const region = document.getElementById('filterRegion').value;
+  const province = document.getElementById('filterProvince').value;
+  affSel.innerHTML = '<option value="">ทั้งหมด</option>';
+  let source = ALL_DATA;
+  if (region)   source = source.filter(r => r['ภูมิภาค'] === region);
+  if (province) source = source.filter(r => r['จังหวัด'] && r['จังหวัด'].trim() === province.trim());
+  const affs = [...new Set(source.map(r => r['สังกัด']).filter(Boolean))].sort((a,b) => a.localeCompare(b,'th'));
+  affs.forEach(a => {
+    const o = document.createElement('option');
+    o.value = a; o.text = a;
+    affSel.appendChild(o);
+  });
+  if (cur && affs.includes(cur)) affSel.value = cur;
+}
+
+// ─── EXPORT EXCEL ──────────────────────────────────────────
+function exportToExcel(useAll) {
+  const data = useAll ? ALL_DATA : filtered;
+  if (!data || data.length === 0) {
+    alert('ไม่มีข้อมูลสำหรับ Export');
+    return;
+  }
+
+  // เรียงคอลัมน์ให้อ่านง่าย โดยเอาฟิลด์หลักไว้ก่อน แล้วตามด้วยฟิลด์ที่เหลือ
+  const priorityCols = [
+    'ที่','smis','รหัส รร.','โรงเรียน','โรงเรียนเป้าหมาย','กระทรวง',
+    'ตำบล','อำเภอ','จังหวัด','สังกัด','ภูมิภาค',
+    'เป้าหมายมูลนิธิ ฯ','ประเภท','ครูครบชั้น/ไม่ครบ','Status',
+    'ผู้บริหาร','ตำแหน่ง','เบอร์','ผู้ระสานงาน','ตำแหน่ง2','เบอร์3','หน่วยงาน',
+    'จำนวนนักเรียน','จำนวนครู','ใบงาน','ทดแทน DGB 2565',
+    'lat.','long.'
+  ];
+  const allKeysSet = new Set();
+  data.forEach(r => Object.keys(r).forEach(k => allKeysSet.add(k)));
+  const remainingCols = [...allKeysSet].filter(k => !priorityCols.includes(k));
+  const cols = [...priorityCols.filter(k => allKeysSet.has(k)), ...remainingCols];
+
+  const exportRows = data.map(r => {
+    const row = {};
+    cols.forEach(c => { row[c] = r[c] !== undefined && r[c] !== null ? r[c] : ''; });
+    return row;
+  });
+
+  const ws = XLSX.utils.json_to_sheet(exportRows, { header: cols });
+  // ปรับความกว้างคอลัมน์แบบคร่าวๆ
+  ws['!cols'] = cols.map(c => ({ wch: Math.min(Math.max(c.length + 2, 10), 30) }));
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'ข้อมูลโรงเรียน');
+
+  const now = new Date();
+  const stamp = now.toISOString().slice(0,10);
+  const label = useAll ? 'ทั้งหมด' : 'ที่กรอง';
+  const filename = `โรงเรียนเป้าหมายมูลนิธิ_${label}_${stamp}.xlsx`;
+
+  XLSX.writeFile(wb, filename);
+}
+
 // ─── TAGS ─────────────────────────────────────────────────
 function getRegionTag(r) {
   if (r==='ภาคกลาง') return '<span class="tag tag-central">กลาง</span>';
@@ -1084,6 +1155,7 @@ function applyFilters() {
   const search  = document.getElementById('searchInput').value.toLowerCase();
   const region  = document.getElementById('filterRegion').value;
   const province= document.getElementById('filterProvince').value;
+  const affiliation = document.getElementById('filterAffiliation').value;
   const year    = document.getElementById('filterYear').value;
   const size    = document.getElementById('filterSize').value;
   const work    = document.getElementById('filterWork').value;
@@ -1101,6 +1173,7 @@ function applyFilters() {
     )) return false;
     if (region && r['ภูมิภาค'] !== region) return false;
     if (province && r['จังหวัด'].trim() !== province.trim()) return false;
+    if (affiliation && r['สังกัด'] !== affiliation) return false;
     if (year && r['เป้าหมายมูลนิธิ ฯ'] !== year) return false;
     if (size && r['ประเภท'] !== size) return false;
     if (work) {
@@ -1734,13 +1807,14 @@ function switchTab(tab) {
 // ─── CLEAR ───────────────────────────────────────────────
 function clearFilters() {
   ['searchInput'].forEach(id => document.getElementById(id).value='');
-  ['filterRegion','filterProvince','filterYear','filterSize','filterWork','filterDgb','filterCoord'].forEach(id =>
+  ['filterRegion','filterProvince','filterAffiliation','filterYear','filterSize','filterWork','filterDgb','filterCoord'].forEach(id =>
     document.getElementById(id).value='');
   buildProvinceDropdown();
+  buildAffiliationDropdown();
   applyFilters();
 }
 
-// ─── REGION → PROVINCE CASCADE ──────────────────────────
+// ─── REGION → PROVINCE → AFFILIATION CASCADE ─────────────
 document.getElementById('filterRegion').addEventListener('change', function() {
   const region = this.value;
   const provSel = document.getElementById('filterProvince');
@@ -1752,7 +1826,9 @@ document.getElementById('filterRegion').addEventListener('change', function() {
     const o = document.createElement('option');
     o.value=p; o.text=p; provSel.appendChild(o);
   });
+  buildAffiliationDropdown();
 });
+document.getElementById('filterProvince').addEventListener('change', buildAffiliationDropdown);
 
 // ─── EVENTS ──────────────────────────────────────────────
 let searchTimer;
@@ -1760,7 +1836,7 @@ document.getElementById('searchInput').addEventListener('input', () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(applyFilters, 280);
 });
-['filterRegion','filterProvince','filterYear','filterSize','filterWork','filterDgb','filterCoord'].forEach(id =>
+['filterRegion','filterProvince','filterAffiliation','filterYear','filterSize','filterWork','filterDgb','filterCoord'].forEach(id =>
   document.getElementById(id).addEventListener('change', applyFilters));
 
 // ─── INIT ────────────────────────────────────────────────
