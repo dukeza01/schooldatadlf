@@ -310,9 +310,12 @@ tbody td.school-name { white-space:normal; max-width:210px; font-weight:600; col
   background:var(--bg2); border:1px solid var(--border);
   border-radius:9px; padding:10px 14px;
   border-left:3px solid var(--border2);
-  transition: box-shadow .15s;
+  transition: box-shadow .15s, transform .15s;
+  animation: fadeUp .35s ease both;
 }
-.modal-field:hover { box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.modal-field:hover { box-shadow:0 3px 10px rgba(0,0,0,.08); transform:translateY(-1px); }
+.equip-item { transition: transform .15s, box-shadow .15s; animation: popIn .3s ease both; }
+.equip-item:hover { transform:translateY(-2px) scale(1.03); box-shadow:0 4px 12px rgba(67,97,238,.12); }
 .modal-field-label { font-size:10px; color:var(--text3); margin-bottom:3px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
 .modal-field-val { font-size:14px; color:var(--text); font-weight:500; }
 .modal-section {
@@ -400,6 +403,52 @@ tbody td.school-name { white-space:normal; max-width:210px; font-weight:600; col
 .kpi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; opacity:.75; }
 .kpi-val { font-size:22px; font-weight:800; line-height:1.1; }
 .kpi-sub { font-size:10px; opacity:.7; margin-top:1px; }
+.kpi-card-alert { animation: cardBreathe 2.6s ease-in-out infinite; }
+
+/* ─── Status summary / closed-schools list ─── */
+.closed-count-badge {
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:20px; height:20px; padding:0 6px; margin-left:6px;
+  background:#ef476f; color:#fff; border-radius:999px;
+  font-size:11px; font-weight:800; vertical-align:middle;
+}
+.closed-list-card { max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-top:6px; padding-right:2px; }
+.closed-item {
+  display:flex; align-items:center; gap:10px;
+  background:#FFF1F2; border:1px solid #FECDD3; border-left:4px solid #ef476f;
+  border-radius:10px; padding:9px 12px;
+  animation: slideInFade .4s ease both;
+  transition: transform .15s, box-shadow .15s;
+}
+.closed-item:hover { transform:translateX(2px); box-shadow:0 3px 10px rgba(239,71,111,.18); }
+.closed-item .ci-icon { font-size:17px; flex-shrink:0; }
+.closed-item .ci-body { flex:1; min-width:0; }
+.closed-item .ci-name { font-size:12.5px; font-weight:700; color:#9f1239; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.closed-item .ci-meta { font-size:10.5px; color:#be123c; opacity:.85; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.closed-item .ci-date { font-size:10px; font-weight:700; color:#fff; background:#ef476f; border-radius:999px; padding:3px 9px; flex-shrink:0; }
+.closed-empty { text-align:center; color:var(--text3); font-size:12.5px; padding:30px 6px; animation: fadeUp .4s ease both; }
+.stat-card.alert .stat-val { position:relative; }
+.stat-card.alert.has-alert { animation: cardBreathe 2.6s ease-in-out infinite; }
+
+/* ─── Status pill (used inside detail modal) ─── */
+.status-pill {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 11px; border-radius:999px; font-size:12.5px; font-weight:700;
+  animation: popIn .35s ease both;
+}
+.status-pill.normal   { background:#ECFDF5; color:#047857; border:1px solid #6EE7B7; }
+.status-pill.declined { background:#FFFBEB; color:#b45309; border:1px solid #FCD34D; }
+.status-pill.closed   { background:#FFF1F2; color:#be123c; border:1px solid #FECDD3; }
+.status-pill .status-dot { width:7px; height:7px; border-radius:50%; background:currentColor; flex-shrink:0; }
+.status-pill.closed .status-dot { background:#ef476f; animation: pulseDot 1.6s infinite; }
+.status-date-tag { margin-left:2px; font-size:10px; font-weight:700; opacity:.8; }
+
+/* ─── Motion keyframes ─── */
+@keyframes slideInFade { from{ opacity:0; transform:translateX(-8px); } to{ opacity:1; transform:translateX(0); } }
+@keyframes fadeUp     { from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+@keyframes popIn      { 0%{ transform:scale(.9); opacity:0; } 60%{ transform:scale(1.04); opacity:1; } 100%{ transform:scale(1); } }
+@keyframes pulseDot   { 0%,100%{ box-shadow:0 0 0 0 rgba(239,71,111,.55); } 50%{ box-shadow:0 0 0 5px rgba(239,71,111,0); } }
+@keyframes cardBreathe{ 0%,100%{ box-shadow:0 2px 8px rgba(239,71,111,.08);} 50%{ box-shadow:0 4px 16px rgba(239,71,111,.28);} }
 
 /* ─── Leaflet Map override ─── */
 .leaflet-popup-content-wrapper {
@@ -611,6 +660,11 @@ tbody td.school-name { white-space:normal; max-width:210px; font-weight:600; col
     <div class="stat-val" id="s-dgb" style="color:var(--teal)">—</div>
     <div class="stat-sub">แห่ง</div>
   </div>
+  <div class="stat-card alert" style="border-top:3px solid #ef476f">
+    <div class="stat-label">🛑 รร.ยุบเลิก/โอน</div>
+    <div class="stat-val" id="s-closed" style="color:#ef476f">—</div>
+    <div class="stat-sub">แห่ง</div>
+  </div>
 </div>
 
 <!-- Filters -->
@@ -774,6 +828,11 @@ tbody td.school-name { white-space:normal; max-width:210px; font-weight:600; col
         <div class="kpi-val" id="kpi-equip-total" style="color:#7c3aed">—</div>
         <div class="kpi-sub" style="color:#7c3aed">ชิ้น</div>
       </div>
+      <div class="kpi-card" style="background:#FFF1F2" id="kpiClosedCard">
+        <div class="kpi-label" style="color:#be123c">🛑 รร.ยุบเลิก/โอน</div>
+        <div class="kpi-val" id="kpi-closed" style="color:#be123c">—</div>
+        <div class="kpi-sub" style="color:#be123c">แห่ง</div>
+      </div>
     </div>
     <div class="dash-grid">
       <div class="chart-card"><div class="chart-title">🌍 โรงเรียนแยกภูมิภาค</div><canvas id="chartRegion" height="160"></canvas></div>
@@ -783,6 +842,13 @@ tbody td.school-name { white-space:normal; max-width:210px; font-weight:600; col
     <div class="dash-grid-wide">
       <div class="chart-card"><div class="chart-title">🏆 10 จังหวัดที่มีโรงเรียนมากที่สุด</div><canvas id="chartProvince" height="170"></canvas></div>
       <div class="chart-card"><div class="chart-title">✅ สถานะ DGB 2565</div><canvas id="chartDgb" height="170"></canvas></div>
+    </div>
+    <div class="dash-grid-wide">
+      <div class="chart-card"><div class="chart-title">🚦 สถานะโรงเรียนโดยรวม</div><canvas id="chartStatus" height="170"></canvas></div>
+      <div class="chart-card">
+        <div class="chart-title">🛑 รายชื่อ รร. ที่ยุบเลิก/โอน <span id="closedCountBadge" class="closed-count-badge">0</span></div>
+        <div class="closed-list-card" id="closedList"></div>
+      </div>
     </div>
     <div class="dash-grid-3">
       <div class="chart-card"><div class="chart-title">📦 อุปกรณ์ที่จัดสรร (Top 8)</div><canvas id="chartEquip" height="160"></canvas></div>
@@ -1225,14 +1291,20 @@ function applyFilters() {
 
 function updateStats() {
   const d = filtered;
-  document.getElementById('s-total').textContent     = d.length.toLocaleString();
-  document.getElementById('s-central').textContent   = d.filter(r=>r['ภูมิภาค']==='ภาคกลาง').length.toLocaleString();
-  document.getElementById('s-north').textContent     = d.filter(r=>r['ภูมิภาค']==='ภาคเหนือ').length.toLocaleString();
-  document.getElementById('s-ne').textContent        = d.filter(r=>r['ภูมิภาค']==='ภาคตะวันออกเฉียงเหนือ').length.toLocaleString();
-  document.getElementById('s-south').textContent     = d.filter(r=>r['ภูมิภาค']==='ภาคใต้').length.toLocaleString();
+  animateCount(document.getElementById('s-total'),   d.length);
+  animateCount(document.getElementById('s-central'), d.filter(r=>r['ภูมิภาค']==='ภาคกลาง').length);
+  animateCount(document.getElementById('s-north'),   d.filter(r=>r['ภูมิภาค']==='ภาคเหนือ').length);
+  animateCount(document.getElementById('s-ne'),      d.filter(r=>r['ภูมิภาค']==='ภาคตะวันออกเฉียงเหนือ').length);
+  animateCount(document.getElementById('s-south'),   d.filter(r=>r['ภูมิภาค']==='ภาคใต้').length);
   const students = d.reduce((a,r)=>a+(Number(r['จำนวนนักเรียน'])||0),0);
-  document.getElementById('s-students').textContent  = students.toLocaleString();
-  document.getElementById('s-dgb').textContent       = d.filter(r=>r['ทดแทน DGB 2565']==='Yes').length.toLocaleString();
+  animateCount(document.getElementById('s-students'), students);
+  animateCount(document.getElementById('s-dgb'),      d.filter(r=>r['ทดแทน DGB 2565']==='Yes').length);
+  const closedTotal = d.filter(r=>isClosedStatus(r['Status'])).length;
+  const sClosedEl = document.getElementById('s-closed');
+  if (sClosedEl) {
+    animateCount(sClosedEl, closedTotal);
+    sClosedEl.closest('.stat-card')?.classList.toggle('has-alert', closedTotal>0);
+  }
   document.getElementById('resultCount').textContent = d.length.toLocaleString();
   document.getElementById('totalBadge').textContent  = d.length.toLocaleString() + ' โรงเรียน';
 }
@@ -1292,6 +1364,44 @@ function render() {
 
 function escHtml(s) { return s.replace(/'/g,"&#39;").replace(/"/g,'&quot;'); }
 
+// ─── Motion helper: animate numbers counting up ─────────────
+function animateCount(el, target, duration) {
+  if (!el) return;
+  duration = duration || 650;
+  const startRaw = (el.textContent||'').replace(/[^\d.-]/g,'');
+  const start = startRaw ? Number(startRaw) : 0;
+  target = Number(target)||0;
+  if (start === target) { el.textContent = target.toLocaleString(); return; }
+  const t0 = performance.now();
+  function tick(now) {
+    const p = Math.min(1, (now - t0) / duration);
+    const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+    const val = Math.round(start + (target - start) * eased);
+    el.textContent = val.toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+    else el.textContent = target.toLocaleString();
+  }
+  requestAnimationFrame(tick);
+}
+
+// ─── Status meta: interpret raw Status field into a friendly badge ───
+function getStatusMeta(status) {
+  const s = (status||'').trim();
+  if (!s || s === '-') {
+    return { key:'normal', icon:'✅', text:'ปกติ / ดำเนินการอยู่', cls:'normal', date:'' };
+  }
+  if (s.includes('เลิกสถานศึกษา') || s.includes('ยุบเลิก') || (s.includes('ยุบ') && !s.includes('ไม่')) || s.includes('โอน')) {
+    const m = s.match(/\(([^)]+)\)/);
+    return { key:'closed', icon:'🛑', text:'ยุบเลิก / โอน', cls:'closed', date: m ? m[1] : '' };
+  }
+  if (s.includes('ไม่ขอรับ')) {
+    return { key:'declined', icon:'⚠️', text:'ไม่ขอรับ', cls:'declined', date:'' };
+  }
+  return { key:'other', icon:'ℹ️', text:s, cls:'normal', date:'' };
+}
+function isClosedStatus(status) { return getStatusMeta(status).key === 'closed'; }
+function isDeclinedStatus(status) { return getStatusMeta(status).key === 'declined'; }
+
 // ─── PAGINATION ───────────────────────────────────────────
 function renderPagination() {
   const total = Math.ceil(filtered.length/PAGE_SIZE);
@@ -1318,7 +1428,14 @@ function changePage(p) {
 
 // ─── MODAL ────────────────────────────────────────────────
 function openModal(idx) {
-  const r = filtered[idx];
+  openModalRow(filtered[idx]);
+}
+function openModalByRow(idx) {
+  // idx here is an index into ALL_DATA (used by dashboard widgets like the closed-schools list)
+  openModalRow(ALL_DATA[idx]);
+}
+function openModalRow(r) {
+  if (!r) return;
   document.getElementById('m-name').textContent = r['โรงเรียนเป้าหมาย']||'-';
   document.getElementById('m-sub').textContent  = `SMIS: ${r['รหัส รร.']||'-'} · รหัสกระทรวง: ${'-'} · ${r['จังหวัด']||''} · ${r['ภูมิภาค']||''}`;
 
@@ -1361,11 +1478,11 @@ function openModal(idx) {
   function fieldStyle(label) {
     const c = FIELD_COLORS[label];
     if (!c) return '';
-    return `style="background:${c.bg};border-color:${c.border};border-left:3px solid ${c.border}"`;
+    return `background:${c.bg};border-color:${c.border};border-left:3px solid ${c.border};`;
   }
   function labelStyle(label) {
     const c = FIELD_COLORS[label];
-    return c ? `style="color:${c.label}"` : '';
+    return c ? `color:${c.label};` : '';
   }
 
   document.getElementById('m-info').innerHTML = [
@@ -1376,7 +1493,22 @@ function openModal(idx) {
     ['ครูครบชั้น',r['ครูครบชั้น/ไม่ครบ']||'-'],['Status',r['Status']||'-'],
     ['ใบงาน',r['ใบงาน']||'-'],['ทดแทน DGB 2565',r['ทดแทน DGB 2565']||'-'],
     ['พิกัด Lat.',r['lat.']||'-'],['พิกัด Long.',r['long.']||'-'],
-  ].map(([l,v])=>`<div class="modal-field" ${fieldStyle(l)}><div class="modal-field-label" ${labelStyle(l)}>${l}</div><div class="modal-field-val">${v||'-'}</div></div>`).join('');
+  ].map(([l,v],idx)=>{
+    const delay = `animation-delay:${(idx*0.025).toFixed(3)}s;`;
+    if (l === 'Status') {
+      const meta = getStatusMeta(v);
+      const bgMap    = { normal:'#ECFDF5', declined:'#FFFBEB', closed:'#FFF1F2' };
+      const borderMap= { normal:'#6EE7B7', declined:'#FCD34D', closed:'#FECDD3' };
+      const accentMap= { normal:'#10b981', declined:'#f59e0b', closed:'#ef476f' };
+      const labelMap = { normal:'#047857', declined:'#b45309', closed:'#be123c' };
+      const dateTag  = meta.date ? `<span class="status-date-tag">📅 ${escHtml(meta.date)}</span>` : '';
+      return `<div class="modal-field" style="${delay}background:${bgMap[meta.cls]};border-color:${borderMap[meta.cls]};border-left:3px solid ${accentMap[meta.cls]}">
+        <div class="modal-field-label" style="color:${labelMap[meta.cls]}">STATUS</div>
+        <div class="modal-field-val"><span class="status-pill ${meta.cls}"><span class="status-dot"></span>${meta.icon} ${escHtml(meta.text)}</span>${dateTag}</div>
+      </div>`;
+    }
+    return `<div class="modal-field" style="${delay}${fieldStyle(l)}"><div class="modal-field-label" style="${labelStyle(l)}">${l}</div><div class="modal-field-val">${v||'-'}</div></div>`;
+  }).join('');
 
   const equipFields = ['จาน+LNB','Android','TV 55"','IRD','Notebook','L2 Switch','16Port','8Port','Router','Printer','หมึก','LAN','AC','Digital Life','TV 49"','ทดแทน DGB 2565'];
   const equipColors = ['#EFF6FF','#F5F3FF','#F0FDF4','#FFFBEB','#FFF1F2','#ECFEFF','#F8FAFC','#F8FAFC','#FFF7ED','#FFF1F2','#F0FDFA','#ECFDF5','#FFF0F9','#FFFBEB','#F0FDF4','#F0FDFA'];
@@ -1385,7 +1517,7 @@ function openModal(idx) {
   document.getElementById('m-equip').innerHTML = equipFields.map((f,i)=>{
     const v = r[f]||'0';
     const isZero = v==='0'||v==='';
-    return `<div class="equip-item" style="background:${equipColors[i]||'var(--bg2)'};border-color:${equipBorders[i]||'var(--border)'}">
+    return `<div class="equip-item" style="animation-delay:${(i*0.02).toFixed(3)}s;background:${equipColors[i]||'var(--bg2)'};border-color:${equipBorders[i]||'var(--border)'}">
       <div class="equip-name" style="color:${equipAccent[i]||'var(--text3)'}">${f}</div>
       <div class="equip-val ${isZero?'zero':''}" style="${isZero?'':'color:'+equipAccent[i]}">${v||'0'}</div>
     </div>`;
@@ -1405,9 +1537,10 @@ function openModal(idx) {
     ['ตำแหน่ง (ผู้ประสาน)',r['ตำแหน่ง2']],['เบอร์โทร (ผู้ประสาน)',r['เบอร์3']],
   ].map(([l,v],i)=>{
     const c = CONTACT_COLORS[i] || {};
-    const fs = c.bg ? `style="background:${c.bg};border-color:${c.border};border-left:3px solid ${c.border}"` : '';
-    const ls = c.label ? `style="color:${c.label}"` : '';
-    return `<div class="modal-field" ${fs}><div class="modal-field-label" ${ls}>${l}</div><div class="modal-field-val">${v||'-'}</div></div>`;
+    const delay = `animation-delay:${(i*0.03).toFixed(3)}s;`;
+    const bg = c.bg ? `background:${c.bg};border-color:${c.border};border-left:3px solid ${c.border};` : '';
+    const ls = c.label ? `color:${c.label};` : '';
+    return `<div class="modal-field" style="${delay}${bg}"><div class="modal-field-label" style="${ls}">${l}</div><div class="modal-field-val">${v||'-'}</div></div>`;
   }).join('');
 
   document.getElementById('modalOverlay').classList.add('open');
@@ -1641,22 +1774,73 @@ function renderDashboard() {
   const coordCount= d.filter(r=>r['lat.']&&r['long.']&&r['lat.']!=='-').length;
   const neCount   = d.filter(r=>r['ภูมิภาค']==='ภาคตะวันออกเฉียงเหนือ').length;
   const workCount = d.filter(r=>r['ใบงาน']&&r['ใบงาน']!=='-'&&r['ใบงาน']!=='').length;
-  document.getElementById('kpi-total').textContent    = d.length.toLocaleString();
-  document.getElementById('kpi-students').textContent = totalStudents.toLocaleString();
-  document.getElementById('kpi-teachers').textContent = totalTeachers.toLocaleString();
-  document.getElementById('kpi-dgb').textContent      = dgbCount.toLocaleString();
-  document.getElementById('kpi-coord').textContent    = coordCount.toLocaleString();
-  document.getElementById('kpi-ne').textContent       = neCount.toLocaleString();
-  document.getElementById('kpi-work').textContent     = workCount.toLocaleString();
+  animateCount(document.getElementById('kpi-total'),    d.length);
+  animateCount(document.getElementById('kpi-students'), totalStudents);
+  animateCount(document.getElementById('kpi-teachers'), totalTeachers);
+  animateCount(document.getElementById('kpi-dgb'),      dgbCount);
+  animateCount(document.getElementById('kpi-coord'),    coordCount);
+  animateCount(document.getElementById('kpi-ne'),       neCount);
+  animateCount(document.getElementById('kpi-work'),     workCount);
   document.getElementById('kpi-avg').textContent      = d.length ? Math.round(totalStudents/d.length).toLocaleString() : '—';
 
   // KPI ใหม่ 3 ตัว
   const equipFields2 = ['จาน+LNB','Android','TV 55"','IRD','Notebook','L2 Switch','Router','Printer'];
   const totalEquip = equipFields2.reduce((sum,f)=>sum+d.reduce((a,r)=>a+(Number(r[f])||0),0),0);
   const workSchools = d.filter(r=>r['ใบงาน']&&r['ใบงาน']!=='-'&&r['ใบงาน']!=='').length;
-  document.getElementById('kpi-teachers-total').textContent = totalTeachers.toLocaleString();
-  document.getElementById('kpi-work-school').textContent    = workSchools.toLocaleString();
-  document.getElementById('kpi-equip-total').textContent    = Math.round(totalEquip).toLocaleString();
+  animateCount(document.getElementById('kpi-teachers-total'), totalTeachers);
+  animateCount(document.getElementById('kpi-work-school'),    workSchools);
+  animateCount(document.getElementById('kpi-equip-total'),    Math.round(totalEquip));
+
+  // ─── สรุปสถานะโรงเรียน: ปกติ / ไม่ขอรับ / ยุบเลิก-โอน ───
+  const closedRows   = d.filter(r=>isClosedStatus(r['Status']));
+  const declinedCount = d.filter(r=>isDeclinedStatus(r['Status'])).length;
+  const closedCount   = closedRows.length;
+  const normalCount   = Math.max(0, d.length - closedCount - declinedCount);
+  animateCount(document.getElementById('kpi-closed'), closedCount);
+  const kpiClosedCard = document.getElementById('kpiClosedCard');
+  if (kpiClosedCard) kpiClosedCard.classList.toggle('kpi-card-alert', closedCount>0);
+
+  const ctxStatus = document.getElementById('chartStatus');
+  if (ctxStatus) {
+    if (dashCharts.chartStatus) dashCharts.chartStatus.destroy();
+    dashCharts.chartStatus = new Chart(ctxStatus, {
+      type:'doughnut',
+      data:{
+        labels:['ปกติ / ดำเนินการอยู่','ไม่ขอรับ','ยุบเลิก / โอน'],
+        datasets:[{ data:[normalCount, declinedCount, closedCount], backgroundColor:['#10b981','#f59e0b','#ef476f'], borderWidth:2, borderColor:'#fff' }]
+      },
+      options:{
+        responsive:true,
+        plugins:{
+          legend:{ position:'bottom', labels:{font:{family:'Sarabun',size:11},boxWidth:12,padding:10} },
+          tooltip:{ callbacks:{ label:c=>` ${c.label}: ${Number(c.raw).toLocaleString()} แห่ง` }, titleFont:{family:'Sarabun'}, bodyFont:{family:'Sarabun'} }
+        }
+      }
+    });
+  }
+
+  const closedBadge = document.getElementById('closedCountBadge');
+  if (closedBadge) closedBadge.textContent = closedCount.toLocaleString();
+
+  const closedListEl = document.getElementById('closedList');
+  if (closedListEl) {
+    if (!closedCount) {
+      closedListEl.innerHTML = `<div class="closed-empty">🎉 ไม่พบโรงเรียนที่ยุบเลิก/โอนในตัวกรองปัจจุบัน</div>`;
+    } else {
+      closedListEl.innerHTML = closedRows.slice(0, 100).map((row, i) => {
+        const meta = getStatusMeta(row['Status']);
+        const dateTxt = meta.date ? `📅 ${escHtml(meta.date)}` : '';
+        return `<div class="closed-item" style="animation-delay:${(i*0.03).toFixed(3)}s" onclick="openModalByRow(${ALL_DATA.indexOf(row)})" title="คลิกเพื่อดูรายละเอียด">
+          <span class="ci-icon">🛑</span>
+          <div class="ci-body">
+            <div class="ci-name">${escHtml(row['โรงเรียนเป้าหมาย']||'-')}</div>
+            <div class="ci-meta">${escHtml(row['อำเภอ']||'-')} · ${escHtml(row['จังหวัด']||'-')} · ${escHtml(row['สังกัด']||'-')}</div>
+          </div>
+          ${dateTxt ? `<span class="ci-date">${dateTxt}</span>` : ''}
+        </div>`;
+      }).join('');
+    }
+  }
 
   const chartDefs = [
     { id:'chartRegion', type:'doughnut',
