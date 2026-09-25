@@ -930,6 +930,15 @@ textarea.field-input { height: auto; min-height: 84px; padding: 10px 12px; resiz
 .dltv-detail.disabled .opt span { cursor: not-allowed; }
 .dltv-detail.disabled .opt span:hover { border-color: var(--line-2); color: var(--ink-2); }
 
+.photo-thumb > a { display: block; width: 100%; height: 100%; }
+.photo-thumb > a > span { display: none; }
+.photo-thumb > a.broken img { display: none; }
+.photo-thumb > a.broken > span { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 12px; color: var(--accent); background: var(--accent-soft); }
+.ph-tag { position: absolute; left: 6px; bottom: 6px; font-style: normal; font-size: 11px; font-weight: 500; padding: 1px 7px; border-radius: 999px; background: rgba(23,33,46,.65); color: #fff; }
+.ph-tag.new { background: var(--grad); }
+.photo-thumb button:hover { background: #DC2626; }
+.rm-note { color: #B0413E; }
+
 /* แผนที่อยู่ใน stacking context ของตัวเอง ไม่ทับแผงด้านขวา */
 .map-frame { isolation: isolate; z-index: 0; }
 
@@ -3176,7 +3185,7 @@ let VISITS = [];            // บันทึกที่อยู่ใน Goo
 let VISIT_INDEX = {};       // schoolKey → [visits]
 let VISITS_SUPPORTED = null;
 let visitsLoadedAt = 0;
-let visitFormRow = null, visitEditing = null, visitPhotos = [], visitGeo = null, visitSubmitting = false, queueFlushing = false;
+let visitFormRow = null, visitEditing = null, visitPhotos = [], visitOldPhotos = [], visitRemovedPhotos = 0, visitGeo = null, visitSubmitting = false, queueFlushing = false;
 let VISIT_QUEUE = [];       // บันทึกที่รอส่ง (ออฟไลน์)
 try { VISIT_QUEUE = JSON.parse(localStorage.getItem(VISIT_QUEUE_STORE) || '[]') || []; } catch (e) {}
 function saveQueue() { try { localStorage.setItem(VISIT_QUEUE_STORE, JSON.stringify(VISIT_QUEUE)); return true; } catch (e) { return false; } }
@@ -3307,7 +3316,13 @@ function openVisitForm(r, editRec) {
   const f = document.getElementById('visitForm');
   f.reset();
   const set = (n, v) => { if (f.elements[n] && v && v !== '-') f.elements[n].value = v; };
-  const oldPhotos = editRec ? String(editRec['ลิงก์รูปภาพ'] || '').split(/\s+/).filter(x => /^https?:/.test(x)) : [];
+  visitOldPhotos = []; visitRemovedPhotos = 0;
+  if (editRec) {
+    String(editRec['ลิงก์รูปภาพ'] || '').split(/\s+/).filter(x => /^https?:/.test(x))
+      .forEach(u => visitOldPhotos.push({ type: 'link', href: u, src: driveThumbUrl(u) }));
+    const qi = VISIT_QUEUE.find(q => q.visit['รหัสบันทึก'] === editRec['รหัสบันทึก']);
+    if (qi && qi.photos) qi.photos.forEach(ph => visitOldPhotos.push({ type: 'local', mime: ph.mime, data: ph.data, src: 'data:' + (ph.mime || 'image/jpeg') + ';base64,' + ph.data }));
+  }
   if (editRec) {
     ['วันที่เยี่ยม', 'ผู้เยี่ยม', 'ผู้ให้ข้อมูล', 'ตำแหน่งผู้ให้ข้อมูล', 'เบอร์ผู้ให้ข้อมูล', 'นักเรียน ณ วันเยี่ยม', 'ครู ณ วันเยี่ยม',
      'ปัญหาที่พบ', 'ข้อเสนอแนะ / สิ่งที่ต้องติดตาม'].forEach(n => set(n, editRec[n]));
@@ -3335,8 +3350,7 @@ function openVisitForm(r, editRec) {
   syncDltvDetail();
   document.getElementById('vf-title').textContent = editRec ? '✏️ แก้ไขบันทึกการเยี่ยม' : '📝 บันทึกการเยี่ยม';
   document.getElementById('vf-submit').textContent = editRec ? '💾 บันทึกการแก้ไข' : '💾 บันทึกการเยี่ยม';
-  document.getElementById('vf-oldphotos').innerHTML = oldPhotos.length
-    ? `มีรูปเดิม ${oldPhotos.length} รูป (${oldPhotos.map((u, i) => `<a href="${escT(u)}" target="_blank" rel="noopener">รูปที่ ${i + 1}</a>`).join(' ')}) ระบบจะเก็บไว้ และเพิ่มรูปใหม่ได้ด้านล่าง` : '';
+  renderOldPhotoNote();
   f.elements['นักเรียน ณ วันเยี่ยม'].placeholder = 'ในระบบ ' + (r['จำนวนนักเรียน'] || '-') + ' คน';
   f.elements['ครู ณ วันเยี่ยม'].placeholder = 'ในระบบ ' + (r['จำนวนครู'] || '-') + ' คน';
   document.getElementById('vf-school').innerHTML =
@@ -3362,7 +3376,7 @@ function syncDltvDetail() {
 }
 function isVisitDirty() {
   const f = document.getElementById('visitForm');
-  if (visitEditing) return visitPhotos.length > 0;
+  if (visitEditing) return visitPhotos.length > 0 || visitRemovedPhotos > 0;
   return visitPhotos.length > 0 || ['ปัญหาที่พบ', 'ข้อเสนอแนะ / สิ่งที่ต้องติดตาม'].some(n => f.elements[n].value.trim());
 }
 function closeVisitForm(force) {
@@ -3374,7 +3388,7 @@ async function onVisitPhotos(input) {
   const files = Array.from(input.files || []);
   input.value = '';
   for (const file of files) {
-    if (visitPhotos.length >= 4) { alert('แนบรูปได้สูงสุด 4 รูปต่อการเยี่ยม'); break; }
+    if (visitOldPhotos.length + visitPhotos.length >= 4) { alert('แนบรูปได้สูงสุด 4 รูปต่อการเยี่ยม ลบรูปเดิมออกก่อนถ้าต้องการเพิ่มรูปใหม่'); break; }
     try { visitPhotos.push(await compressImage(file)); } catch (e) { alert('อ่านรูปไม่ได้: ' + file.name); }
   }
   renderPhotoThumbs();
@@ -3395,11 +3409,32 @@ function compressImage(file, max = 1280, q = 0.8) {
     img.src = url;
   });
 }
+function driveThumbUrl(u) {
+  const m = u.match(/\/d\/([\w-]{10,})/) || u.match(/[?&]id=([\w-]{10,})/);
+  return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w600` : u;
+}
+function renderOldPhotoNote() {
+  const el = document.getElementById('vf-oldphotos');
+  if (!visitEditing) { el.innerHTML = ''; return; }
+  el.innerHTML = visitRemovedPhotos
+    ? `<span class="rm-note">🗑️ จะลบรูปเดิม ${visitRemovedPhotos} รูป เมื่อกด “บันทึกการแก้ไข” (กดยกเลิกเพื่อคืนรูป)</span>`
+    : (visitOldPhotos.length ? 'รูปที่บันทึกไว้แล้ว กด ✕ เพื่อลบรูปที่ไม่ต้องการ' : '');
+}
+function removeOldPhoto(i) {
+  visitOldPhotos.splice(i, 1);
+  visitRemovedPhotos++;
+  renderPhotoThumbs(); renderOldPhotoNote();
+}
 function renderPhotoThumbs() {
   const g = document.getElementById('vf-photos');
-  g.innerHTML = visitPhotos.map((p, i) =>
-    `<div class="photo-thumb"><img src="${p.thumb}" alt="รูปที่ ${i + 1}"><button type="button" onclick="visitPhotos.splice(${i},1);renderPhotoThumbs()" aria-label="ลบรูป">✕</button></div>`).join('') +
-    (visitPhotos.length < 4 ? `<label class="photo-add"><input type="file" accept="image/*" multiple hidden onchange="onVisitPhotos(this)"><b>＋</b>เพิ่มรูป</label>` : '');
+  const total = visitOldPhotos.length + visitPhotos.length;
+  g.innerHTML =
+    visitOldPhotos.map((p, i) =>
+      `<div class="photo-thumb old"><a ${p.href ? `href="${escT(p.href)}" target="_blank" rel="noopener"` : ''}><img src="${escT(p.src)}" alt="รูปเดิม ${i + 1}" onerror="this.parentNode.classList.add('broken')"><span>รูปเดิม ${i + 1}</span></a>` +
+      `<em class="ph-tag">เดิม</em><button type="button" onclick="removeOldPhoto(${i})" aria-label="ลบรูปเดิม" title="ลบรูปนี้">✕</button></div>`).join('') +
+    visitPhotos.map((p, i) =>
+      `<div class="photo-thumb"><img src="${p.thumb}" alt="รูปใหม่ ${i + 1}"><em class="ph-tag new">ใหม่</em><button type="button" onclick="visitPhotos.splice(${i},1);renderPhotoThumbs()" aria-label="ลบรูป">✕</button></div>`).join('') +
+    (total < 4 ? `<label class="photo-add"><input type="file" accept="image/*" multiple hidden onchange="onVisitPhotos(this)"><b>＋</b>เพิ่มรูป</label>` : '');
 }
 
 function distanceM(a1, o1, a2, o2) {
@@ -3453,6 +3488,11 @@ async function submitVisit(e) {
   }
   try { localStorage.setItem(VISITOR_STORE, visit['ผู้เยี่ยม']); } catch (e2) {}
   const photos = visitPhotos.map(p => ({ mime: p.mime, data: p.data }));
+  if (ed) {
+    const keep = visitOldPhotos.filter(p => p.type === 'link').map(p => p.href);
+    visit['ลิงก์รูปภาพ'] = keep.join('\n');
+    visit._keepPhotos = keep;   // เซิร์ฟเวอร์ใช้ตัดรูปที่ถูกลบออก
+  }
 
   const school = visit['โรงเรียน'];
   const btn = document.getElementById('vf-submit');
@@ -3468,7 +3508,7 @@ async function submitVisit(e) {
   const pendingItem = ed ? VISIT_QUEUE.find(q => q.visit['รหัสบันทึก'] === ed['รหัสบันทึก']) : null;
   if (pendingItem) {
     pendingItem.visit = visit;
-    pendingItem.photos = (pendingItem.photos || []).concat(photos).slice(0, 6);
+    pendingItem.photos = visitOldPhotos.filter(p => p.type === 'local').map(p => ({ mime: p.mime, data: p.data })).concat(photos).slice(0, 4);
     if (!saveQueue()) { pendingItem.photos = []; saveQueue(); }
     done('warn', 'แก้ไขแล้ว (รอส่ง)', 'บันทึกนี้ยังอยู่ในเครื่อง ระบบจะส่งเข้า Google Sheets อัตโนมัติเมื่อมีสัญญาณ');
     flushVisitQueue();
