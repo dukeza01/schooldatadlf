@@ -925,6 +925,11 @@ textarea.field-input { height: auto; min-height: 84px; padding: 10px 12px; resiz
 .st-meta { font-size: 12px; color: var(--ink-3); }
 .st-empty { padding: 14px 0; font-size: 13px; color: var(--ink-3); text-align: center; }
 
+.dltv-detail { transition: opacity .2s; }
+.dltv-detail.disabled { opacity: .4; }
+.dltv-detail.disabled .opt span { cursor: not-allowed; }
+.dltv-detail.disabled .opt span:hover { border-color: var(--line-2); color: var(--ink-2); }
+
 /* แผนที่อยู่ใน stacking context ของตัวเอง ไม่ทับแผงด้านขวา */
 .map-frame { isolation: isolate; z-index: 0; }
 
@@ -1282,7 +1287,7 @@ body:has(.trip-tray.show) #listPanel.fs, body:has(.trip-tray.show) #mapView.fs {
     <div class="modal-title" id="vf-title">📝 บันทึกการเยี่ยม</div>
     <div class="modal-sub" id="vf-school"></div>
     <div class="vf-warn" id="vf-warn"></div>
-    <form id="visitForm" onsubmit="submitVisit(event)" autocomplete="on">
+    <form id="visitForm" onsubmit="submitVisit(event)" onchange="syncDltvDetail()" autocomplete="on">
       <div class="modal-section">🗓️ การเยี่ยม</div>
       <div class="vf-grid">
         <label class="tf">วันที่เยี่ยม *<input type="date" name="วันที่เยี่ยม" class="field-input" required></label>
@@ -1304,10 +1309,28 @@ body:has(.trip-tray.show) #listPanel.fs, body:has(.trip-tray.show) #mapView.fs {
         <label class="tf">จำนวนนักเรียน<input name="นักเรียน ณ วันเยี่ยม" type="number" min="0" inputmode="numeric" class="field-input"></label>
         <label class="tf">จำนวนครู<input name="ครู ณ วันเยี่ยม" type="number" min="0" inputmode="numeric" class="field-input"></label>
       </div>
-      <div class="vf-block"><div class="vf-label">การใช้งาน DLTV</div>
+      <div class="vf-block"><div class="vf-label">อัตราครู</div>
+        <div class="opts "><label class="opt"><input type="radio" name="อัตราครู" value="ครูครบชั้น"><span>👩‍🏫 ครูครบชั้น</span></label><label class="opt"><input type="radio" name="อัตราครู" value="ครูไม่ครบชั้น"><span>⚠️ ครูไม่ครบชั้น</span></label></div>
+      </div>
+      <div class="vf-block"><div class="vf-label">การเรียนรวม</div>
+        <div class="opts "><label class="opt"><input type="radio" name="การเรียนรวม" value="มีจัดควบเรียนรวม"><span>🔗 มีจัดควบเรียนรวม</span></label><label class="opt"><input type="radio" name="การเรียนรวม" value="จัดห้องเรียนตามปกติ"><span>🏫 จัดห้องเรียนตามปกติ</span></label></div>
+      </div>
+
+      <div class="modal-section">📺 การใช้ DLTV</div>
+      <div class="vf-block" style="margin-top:14px"><div class="vf-label">ความถี่ในการใช้</div>
         <div class="opts "><label class="opt"><input type="radio" name="การใช้งาน DLTV" value="ใช้ทุกวัน"><span>ใช้ทุกวัน</span></label><label class="opt"><input type="radio" name="การใช้งาน DLTV" value="ใช้บางวัน"><span>ใช้บางวัน</span></label><label class="opt"><input type="radio" name="การใช้งาน DLTV" value="ไม่ได้ใช้"><span>ไม่ได้ใช้</span></label></div>
       </div>
-      <div class="vf-block"><div class="vf-label">สภาพอุปกรณ์</div>
+      <div class="dltv-detail" id="dltvDetail">
+        <div class="vf-block"><div class="vf-label">ระดับชั้นที่ใช้</div>
+          <div class="opts "><label class="opt"><input type="radio" name="ระดับชั้นที่ใช้ DLTV" value="ใช้ทุกระดับชั้น"><span>ใช้ทุกระดับชั้น</span></label><label class="opt"><input type="radio" name="ระดับชั้นที่ใช้ DLTV" value="ใช้บางชั้นเรียน"><span>ใช้บางชั้นเรียน</span></label></div>
+        </div>
+        <div class="vf-block"><div class="vf-label">รูปแบบการใช้ (เลือกได้หลายข้อ)</div>
+          <div class="opts "><label class="opt"><input type="checkbox" name="รูปแบบการใช้ DLTV" value="ใช้สอนเสริม"><span>➕ ใช้สอนเสริม</span></label><label class="opt"><input type="checkbox" name="รูปแบบการใช้ DLTV" value="ใช้สื่อประกอบการสอน"><span>🎬 ใช้สื่อประกอบการสอน</span></label><label class="opt"><input type="checkbox" name="รูปแบบการใช้ DLTV" value="ใช้ใบงานประกอบการสอน"><span>📄 ใช้ใบงานประกอบการสอน</span></label></div>
+        </div>
+      </div>
+
+      <div class="modal-section">🔧 อุปกรณ์</div>
+      <div class="vf-block" style="margin-top:14px"><div class="vf-label">สภาพอุปกรณ์</div>
         <div class="opts "><label class="opt"><input type="radio" name="สภาพอุปกรณ์" value="ใช้งานได้ดี"><span>👍 ใช้งานได้ดี</span></label><label class="opt"><input type="radio" name="สภาพอุปกรณ์" value="ชำรุดบางชิ้น"><span>🔧 ชำรุดบางชิ้น</span></label><label class="opt"><input type="radio" name="สภาพอุปกรณ์" value="ชำรุดมาก"><span>⚠️ ชำรุดมาก</span></label></div>
       </div>
       <div class="vf-block"><div class="vf-label">อุปกรณ์ที่มีปัญหา (เลือกได้หลายรายการ)</div>
@@ -2830,7 +2853,7 @@ function exportPdf(rows, opt) {
   const today = new Date();
   const title = opt.title || (cover ? 'รายการโรงเรียนที่จะไป' : rows[0]['โรงเรียนเป้าหมาย']);
   const travelDate = opt.date ? thaiDate(new Date(opt.date + 'T00:00:00')) : '';
-  const fileTitle = ((cover ? 'รายการเยี่ยมโรงเรียน ' + (opt.title || '') : 'ข้อมูลโรงเรียน ' + (rows[0]['โรงเรียนเป้าหมาย'] || ''))
+  const fileTitle = ((cover ? 'รายการเยี่ยมโรงเรียน ' + (opt.title || '') : (opt.visitId ? 'บันทึกการเยี่ยม ' : 'ข้อมูลโรงเรียน ') + (rows[0]['โรงเรียนเป้าหมาย'] || ''))
     .replace(/[\\/:*?"<>|]+/g, ' ').trim() + ' ' + today.toISOString().slice(0, 10)).replace(/\s+/g, '_');
 
   const kv = (pairs) => {
@@ -2841,6 +2864,63 @@ function exportPdf(rows, opt) {
            (b ? `<td class="k">${b[0]}</td><td class="v">${b[1]}</td>` : '<td></td><td></td>') + '</tr>';
     }
     return `<table class="kv">${h}</table>`;
+  };
+
+  // ── บันทึกการเยี่ยมที่จะแนบต่อท้ายข้อมูลโรงเรียน ──
+  const pdfVisits = (r) => {
+    const list = visitsOf(r);
+    return opt.visitId ? list.filter(v => v['รหัสบันทึก'] === opt.visitId) : list;
+  };
+  const driveThumb = (u) => {
+    const m = u.match(/\/d\/([\w-]{10,})/) || u.match(/[?&]id=([\w-]{10,})/);
+    return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w1200` : u;
+  };
+  const visitPhotos = (v) => {
+    const links = String(v['ลิงก์รูปภาพ'] || '').split(/\s+/).filter(x => /^https?:/.test(x))
+      .map(u => ({ src: driveThumb(u), href: u }));
+    const q = VISIT_QUEUE.find(x => x.visit['รหัสบันทึก'] === v['รหัสบันทึก']);
+    const local = q && q.photos ? q.photos.map(ph => ({ src: 'data:' + (ph.mime || 'image/jpeg') + ';base64,' + ph.data, href: '' })) : [];
+    return links.concat(local);
+  };
+  const visitPage = (r, v, k, n, pageNo) => {
+    const val = (x) => escT(x && x !== '-' ? x : '-');
+    const res = v['ผลการเยี่ยม'] || 'เยี่ยมแล้ว';
+    const resCls = res.includes('เยี่ยมแล้ว') ? 'ok' : res.includes('ปิด') ? 'bad' : 'warn';
+    const photos = visitPhotos(v);
+    const dist = v['ระยะห่างจากโรงเรียน (ม.)'];
+    const geo = v['ละติจูด (ขณะบันทึก)'] && v['ลองจิจูด (ขณะบันทึก)']
+      ? `<a href="https://www.google.com/maps?q=${escT(v['ละติจูด (ขณะบันทึก)'])},${escT(v['ลองจิจูด (ขณะบันทึก)'])}">${escT(v['ละติจูด (ขณะบันทึก)'])}, ${escT(v['ลองจิจูด (ขณะบันทึก)'])}</a>` +
+        (dist !== undefined && dist !== '' ? ` (ห่างจากพิกัดโรงเรียน ${Number(dist) >= 1000 ? (Number(dist) / 1000).toFixed(1) + ' กม.' : escT(dist) + ' ม.'})` : '')
+      : 'ไม่ได้บันทึกพิกัด';
+    const block = (label, text) => `<div class="txt"><div class="tl">${label}</div><div class="tv">${val(text)}</div></div>`;
+    return `<section class="sheet flow">
+      <div class="bar"></div>
+      <div class="kicker">📝 บันทึกการเยี่ยม${n > 1 ? ` ครั้งที่ ${n - k} จาก ${n}` : ''}</div>
+      <h1>${escT(r['โรงเรียนเป้าหมาย'])}</h1>
+      <div class="meta">
+        <span>🗓️ วันที่เยี่ยม <b>${v['วันที่เยี่ยม'] ? thaiDate(new Date(String(v['วันที่เยี่ยม']).slice(0, 10) + 'T00:00:00')) : '-'}</b></span>
+        <span>ผู้เยี่ยม <b>${val(v['ผู้เยี่ยม'])}</b></span>
+        <span class="vr ${resCls}">${escT(res)}</span>
+        ${v['ต้องติดตามต่อ'] === 'ใช่' ? '<span class="vr bad">🔔 ต้องติดตามต่อ</span>' : ''}
+        ${v._pending ? '<span class="vr warn">⏳ ยังไม่ได้ส่งเข้า Google Sheets</span>' : ''}
+      </div>
+      <h2>👤 ผู้ให้ข้อมูล</h2>
+      ${kv([['ชื่อ-สกุล', val(v['ผู้ให้ข้อมูล'])], ['ตำแหน่ง', val(v['ตำแหน่งผู้ให้ข้อมูล'])], ['เบอร์โทร', val(v['เบอร์ผู้ให้ข้อมูล'])], ['รายการเดินทาง', val(v['ชื่อรายการเดินทาง'])]])}
+      <h2>🏫 ข้อมูล ณ วันเยี่ยม</h2>
+      ${kv([['จำนวนนักเรียน', v['นักเรียน ณ วันเยี่ยม'] ? escT(v['นักเรียน ณ วันเยี่ยม']) + ' คน' : '-'], ['จำนวนครู', v['ครู ณ วันเยี่ยม'] ? escT(v['ครู ณ วันเยี่ยม']) + ' คน' : '-'],
+            ['อัตราครู', val(v['อัตราครู'])], ['การเรียนรวม', val(v['การเรียนรวม'])]])}
+      <h2>📺 การใช้ DLTV</h2>
+      ${kv([['ความถี่ในการใช้', val(v['การใช้งาน DLTV'])], ['ระดับชั้นที่ใช้', val(v['ระดับชั้นที่ใช้ DLTV'])],
+            ['รูปแบบการใช้', val(v['รูปแบบการใช้ DLTV'])], ['', '']])}
+      <h2>🔧 อุปกรณ์</h2>
+      ${kv([['สภาพอุปกรณ์', val(v['สภาพอุปกรณ์'])], ['อุปกรณ์ที่มีปัญหา', val(v['อุปกรณ์ที่มีปัญหา'])]])}
+      <h2>📝 ปัญหาและข้อเสนอแนะ</h2>
+      <div class="txts">${block('ปัญหาที่พบ', v['ปัญหาที่พบ'])}${block('ข้อเสนอแนะ / สิ่งที่ต้องติดตาม', v['ข้อเสนอแนะ / สิ่งที่ต้องติดตาม'])}</div>
+      <div class="geo">📍 พิกัดขณะบันทึก: ${geo}</div>
+      ${photos.length ? `<h2>📷 รูปภาพ (${photos.length})</h2><div class="photos">${photos.map((ph, x) =>
+        `<a ${ph.href ? `href="${escT(ph.href)}"` : ''} class="ph"><img src="${escT(ph.src)}" alt="รูปที่ ${x + 1}" onerror="this.parentNode.classList.add('broken')"><span>รูปที่ ${x + 1} (เปิดดูใน Google Drive)</span></a>`).join('')}</div>` : ''}
+      ${foot(pageNo, v['บันทึกเมื่อ'] ? 'บันทึกเมื่อ ' + escT(v['บันทึกเมื่อ']) + (v['แก้ไขล่าสุด'] ? ', แก้ไขล่าสุด ' + escT(v['แก้ไขล่าสุด']) : '') : 'พิมพ์เมื่อ ' + thaiDate(today))}
+    </section>`;
   };
 
   const schoolPage = (r, i) => {
@@ -2879,8 +2959,8 @@ function exportPdf(rows, opt) {
       <h2>📋 ข้อมูลทั่วไป</h2>${kv(info)}
       <h2>📦 อุปกรณ์ที่ได้รับจัดสรร</h2><table class="eq">${eq}</table>
       <h2>👤 ผู้บริหารและผู้ประสานงาน</h2>${kv([[contact[0][0], contact[0][1]], [contact[1][0], contact[1][1]], [contact[2][0], contact[2][1]], ['', ''], [contact[3][0], contact[3][1]], [contact[4][0], contact[4][1]], [contact[5][0], contact[5][1]], ['', '']])}
-      <div class="notes"><div class="nt">📝 บันทึกการเยี่ยม</div><div class="lines"></div></div>
-      ${foot(chunks.length + i + 1, 'พิมพ์เมื่อ ' + thaiDate(today))}
+      <div class="notes"><div class="nt">📝 บันทึกเพิ่มเติม${schoolVisits[i].length ? `<span class="nv">มีบันทึกการเยี่ยม ${schoolVisits[i].length} ครั้ง ในหน้าถัดไป</span>` : ''}</div><div class="lines"></div></div>
+      ${foot(schoolStart[i], 'พิมพ์เมื่อ ' + thaiDate(today))}
     </section>`;
   };
 
@@ -2894,7 +2974,11 @@ function exportPdf(rows, opt) {
       i += n; first = false;
     }
   }
-  const totalPages = chunks.length + rows.length;
+  const schoolVisits = rows.map(pdfVisits);
+  const schoolStart = [];
+  let pg = chunks.length + 1;
+  rows.forEach((r, i) => { schoolStart.push(pg); pg += 1 + schoolVisits[i].length; });
+  const totalPages = pg - 1;
   const foot = (p, left) => `<div class="foot"><span>${left || 'ระบบข้อมูลโรงเรียนเป้าหมายมูลนิธิ'}</span><span>หน้า ${p} จาก ${totalPages}</span></div>`;
 
   let coverHtml = '';
@@ -2921,14 +3005,14 @@ function exportPdf(rows, opt) {
         <tbody>${chunk.map(([r, i]) => {
           const who = r['ผู้ระสานงาน'] && r['ผู้ระสานงาน'] !== '-' ? [r['ผู้ระสานงาน'], r['เบอร์3']] : [r['ผู้บริหาร'], r['เบอร์']];
           return `<tr><td><span class="no">${i + 1}</span></td>
-            <td><b>${escT(r['โรงเรียนเป้าหมาย'])}</b><div class="sm">อ.${escT(r['อำเภอ'])} จ.${escT(r['จังหวัด'])}</div></td>
+            <td><b>${escT(r['โรงเรียนเป้าหมาย'])}</b><div class="sm">อ.${escT(r['อำเภอ'])} จ.${escT(r['จังหวัด'])}</div>${visitsOf(r).length ? `<div class="sm vis">✓ เยี่ยมล่าสุด ${thaiShortDate(visitsOf(r)[0]['วันที่เยี่ยม'])}</div>` : ''}</td>
             <td class="sm2">${escT(r['สังกัด'])}</td>
             <td class="r">${escT(r['จำนวนนักเรียน'])} / ${escT(r['จำนวนครู'])}</td>
             <td>${escT(who[0])}<div class="sm">${escT(who[1])}</div></td></tr>`;
         }).join('')}</tbody>
       </table>
       ${ci === chunks.length - 1 && route ? `<p class="route">🧭 เส้นทางใน Google Maps: <a href="${route}">เปิดเส้นทาง${rows.filter(hasCoordRow).length > 10 ? ' (10 จุดแรก)' : ''}</a></p>` : ''}
-      ${foot(ci + 1, ci === chunks.length - 1 ? 'รายละเอียดแต่ละโรงเรียนอยู่ในหน้าถัดไป' : '')}
+      ${foot(ci + 1, ci === chunks.length - 1 ? 'รายละเอียดและบันทึกการเยี่ยมของแต่ละโรงเรียนอยู่ในหน้าถัดไป' : '')}
     </section>`).join('');
   }
 
@@ -2983,6 +3067,22 @@ function exportPdf(rows, opt) {
     .sm2 { font-size: 8.5pt; color: #4B5563; }
     .route { margin-top: 10px; font-size: 9pt; }
     .foot { margin-top: auto; padding-top: 10px; display: flex; justify-content: space-between; font-size: 7.5pt; color: #8B929C; flex-shrink: 0; }
+    .sheet.flow { height: auto; min-height: 296mm; overflow: visible; }
+    .nv { font-weight: 400; color: #4361EE; margin-left: 10px; font-size: 8.5pt; }
+    .vis { color: #166534; }
+    .vr { display: inline-block; padding: 0 9px; border-radius: 999px; font-size: 8.5pt; font-weight: 500; line-height: 1.8; }
+    .vr.ok { background: #DCFCE7; color: #166534; } .vr.warn { background: #FEF3C7; color: #92400E; } .vr.bad { background: #FFE4E6; color: #9F1239; }
+    .txts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+    .txt { border: 1px solid #E6E8EB; border-radius: 8px; padding: 7px 10px; min-height: 22mm; }
+    .tl { font-size: 8pt; color: #8B929C; margin-bottom: 2px; }
+    .tv { font-size: 9.5pt; white-space: pre-wrap; }
+    .geo { margin-top: 10px; font-size: 9pt; color: #4B5563; }
+    .photos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+    .ph { display: block; position: relative; aspect-ratio: 4 / 3; border-radius: 6px; overflow: hidden; border: 1px solid #E6E8EB; background: #F4F5F6; break-inside: avoid; }
+    .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ph span { display: none; }
+    .ph.broken img { display: none; }
+    .ph.broken span { display: flex; position: absolute; inset: 0; align-items: center; justify-content: center; text-align: center; padding: 6px; font-size: 8pt; color: #4361EE; }
     @media print {
       html, body { background: #fff; }
       .toolbar { display: none; }
@@ -2998,9 +3098,10 @@ function exportPdf(rows, opt) {
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
     <style>${css}</style></head><body>
-    <div class="toolbar"><span class="tip">📄 เอกสาร ${chunks.length + rows.length} หน้า A4 &nbsp; ในหน้าต่างพิมพ์ตั้งค่า: ปลายทาง <b>บันทึกเป็น PDF</b>, ระยะขอบ <b>ไม่มี</b> หรือ <b>ค่าเริ่มต้น</b>, ขนาด <b>100%</b> และติ๊ก <b>กราฟิกพื้นหลัง</b></span>
+    <div class="toolbar"><span class="tip">📄 เอกสาร ${totalPages} หน้า A4 &nbsp; ในหน้าต่างพิมพ์ตั้งค่า: ปลายทาง <b>บันทึกเป็น PDF</b>, ระยะขอบ <b>ไม่มี</b> หรือ <b>ค่าเริ่มต้น</b>, ขนาด <b>100%</b> และติ๊ก <b>กราฟิกพื้นหลัง</b></span>
       <button onclick="window.print()">🖨️ บันทึกเป็น PDF</button></div>
-    ${coverHtml}${rows.map(schoolPage).join('')}
+    ${coverHtml}${rows.map((r, i) => schoolPage(r, i) +
+      schoolVisits[i].map((v, k) => visitPage(r, v, k, schoolVisits[i].length, schoolStart[i] + 1 + k)).join('')).join('')}
     <${SC}>
       window.addEventListener('load', function () {
         var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
@@ -3203,11 +3304,13 @@ function openVisitForm(r, editRec) {
   if (editRec) {
     ['วันที่เยี่ยม', 'ผู้เยี่ยม', 'ผู้ให้ข้อมูล', 'ตำแหน่งผู้ให้ข้อมูล', 'เบอร์ผู้ให้ข้อมูล', 'นักเรียน ณ วันเยี่ยม', 'ครู ณ วันเยี่ยม',
      'ปัญหาที่พบ', 'ข้อเสนอแนะ / สิ่งที่ต้องติดตาม'].forEach(n => set(n, editRec[n]));
-    ['ผลการเยี่ยม', 'การใช้งาน DLTV', 'สภาพอุปกรณ์'].forEach(n => {
+    ['ผลการเยี่ยม', 'อัตราครู', 'การเรียนรวม', 'การใช้งาน DLTV', 'ระดับชั้นที่ใช้ DLTV', 'สภาพอุปกรณ์'].forEach(n => {
       f.querySelectorAll(`input[name="${n}"]`).forEach(i => { i.checked = i.value === editRec[n]; });
     });
-    const bad = String(editRec['อุปกรณ์ที่มีปัญหา'] || '').split(',').map(x => x.trim());
-    f.querySelectorAll('input[name="อุปกรณ์ที่มีปัญหา"]').forEach(i => { i.checked = bad.includes(i.value); });
+    ['อุปกรณ์ที่มีปัญหา', 'รูปแบบการใช้ DLTV'].forEach(n => {
+      const sel = String(editRec[n] || '').split(',').map(x => x.trim());
+      f.querySelectorAll(`input[name="${n}"]`).forEach(i => { i.checked = sel.includes(i.value); });
+    });
     f.elements['ต้องติดตามต่อ'].checked = editRec['ต้องติดตามต่อ'] === 'ใช่';
     const la = parseFloat(editRec['ละติจูด (ขณะบันทึก)']), lo = parseFloat(editRec['ลองจิจูด (ขณะบันทึก)']);
     if (la && lo) visitGeo = { lat: la, lng: lo, dist: editRec['ระยะห่างจากโรงเรียน (ม.)'] || '' };
@@ -3217,7 +3320,12 @@ function openVisitForm(r, editRec) {
     set('ผู้ให้ข้อมูล', r['ผู้ระสานงาน']);
     set('ตำแหน่งผู้ให้ข้อมูล', r['ตำแหน่ง2']);
     set('เบอร์ผู้ให้ข้อมูล', r['เบอร์3']);
+    // อัตราครูตั้งต้นจากฐานข้อมูล (แก้ได้)
+    const tr = String(r['ครูครบชั้น/ไม่ครบ'] || '');
+    const trv = tr.includes('ไม่ครบ') ? 'ครูไม่ครบชั้น' : tr.includes('ครบ') ? 'ครูครบชั้น' : '';
+    f.querySelectorAll('input[name="อัตราครู"]').forEach(i => { i.checked = i.value === trv; });
   }
+  syncDltvDetail();
   document.getElementById('vf-title').textContent = editRec ? '✏️ แก้ไขบันทึกการเยี่ยม' : '📝 บันทึกการเยี่ยม';
   document.getElementById('vf-submit').textContent = editRec ? '💾 บันทึกการแก้ไข' : '💾 บันทึกการเยี่ยม';
   document.getElementById('vf-oldphotos').innerHTML = oldPhotos.length
@@ -3236,6 +3344,14 @@ function openVisitForm(r, editRec) {
   const o = document.getElementById('visitOverlay');
   o.classList.add('open');
   o.querySelector('.modal').scrollTop = 0;
+}
+// ถ้าเลือก "ไม่ได้ใช้" DLTV → ปิดตัวเลือกระดับชั้น/รูปแบบการใช้
+function syncDltvDetail() {
+  const f = document.getElementById('visitForm');
+  const none = !!f.querySelector('input[name="การใช้งาน DLTV"][value="ไม่ได้ใช้"]:checked');
+  const box = document.getElementById('dltvDetail');
+  box.classList.toggle('disabled', none);
+  box.querySelectorAll('input').forEach(i => { i.disabled = none; if (none) i.checked = false; });
 }
 function isVisitDirty() {
   const f = document.getElementById('visitForm');
@@ -3316,9 +3432,11 @@ async function submitVisit(e) {
     'ชื่อรายการเดินทาง': inTrip(r) ? (TRIP.title || '') : '',
   };
   ['วันที่เยี่ยม', 'ผู้เยี่ยม', 'ผลการเยี่ยม', 'ผู้ให้ข้อมูล', 'ตำแหน่งผู้ให้ข้อมูล', 'เบอร์ผู้ให้ข้อมูล',
-   'นักเรียน ณ วันเยี่ยม', 'ครู ณ วันเยี่ยม', 'การใช้งาน DLTV', 'สภาพอุปกรณ์',
+   'นักเรียน ณ วันเยี่ยม', 'ครู ณ วันเยี่ยม', 'อัตราครู', 'การเรียนรวม',
+   'การใช้งาน DLTV', 'ระดับชั้นที่ใช้ DLTV', 'สภาพอุปกรณ์',
    'ปัญหาที่พบ', 'ข้อเสนอแนะ / สิ่งที่ต้องติดตาม'].forEach(k => { visit[k] = String(fd.get(k) || '').trim(); });
   visit['อุปกรณ์ที่มีปัญหา'] = fd.getAll('อุปกรณ์ที่มีปัญหา').join(', ');
+  visit['รูปแบบการใช้ DLTV'] = fd.getAll('รูปแบบการใช้ DLTV').join(', ');
   visit['ต้องติดตามต่อ'] = fd.get('ต้องติดตามต่อ') ? 'ใช่' : 'ไม่';
   if (visitGeo) {
     visit['ละติจูด (ขณะบันทึก)'] = visitGeo.lat.toFixed(6);
@@ -3402,11 +3520,14 @@ function renderModalVisits() {
         ${v._pending ? '<span class="chip wk-no">⏳ รอส่ง</span>' : ''}
         ${v['ต้องติดตามต่อ'] === 'ใช่' ? '<span class="chip y-2566">🔔 ติดตามต่อ</span>' : ''}
         <span class="vi-by">โดย ${escT(v['ผู้เยี่ยม'])}</span>
+        <button class="mini-btn" onclick="exportPdf([currentModalRow], { visitId: '${escT(v['รหัสบันทึก'])}' })" title="ส่งออก PDF ข้อมูลโรงเรียน + บันทึกครั้งนี้">📄 PDF</button>
         <button class="mini-btn edit" onclick="editVisit('${escT(v['รหัสบันทึก'])}')">✏️ แก้ไข</button>
         <button class="icon-btn del" onclick="deleteVisitRec('${escT(v['รหัสบันทึก'])}', ${v._pending ? 'true' : 'false'})" aria-label="ลบบันทึก">✕</button>
       </div>
       <div class="vi-body">
-        ${line('การใช้งาน DLTV', v['การใช้งาน DLTV'])}${line('สภาพอุปกรณ์', v['สภาพอุปกรณ์'])}
+        ${line('อัตราครู', v['อัตราครู'])}${line('การเรียนรวม', v['การเรียนรวม'])}
+        ${line('การใช้งาน DLTV', [v['การใช้งาน DLTV'], v['ระดับชั้นที่ใช้ DLTV']].filter(Boolean).join(', '))}
+        ${line('รูปแบบการใช้ DLTV', v['รูปแบบการใช้ DLTV'])}${line('สภาพอุปกรณ์', v['สภาพอุปกรณ์'])}
         ${line('อุปกรณ์ที่มีปัญหา', v['อุปกรณ์ที่มีปัญหา'])}${line('ปัญหาที่พบ', v['ปัญหาที่พบ'])}
         ${line('ข้อเสนอแนะ', v['ข้อเสนอแนะ / สิ่งที่ต้องติดตาม'])}
         ${photos.length ? `<div class="vi-photos">📷 ${photos.map((u, i) => `<a href="${escT(u)}" target="_blank" rel="noopener">รูปที่ ${i + 1}</a>`).join('')}</div>` : ''}
