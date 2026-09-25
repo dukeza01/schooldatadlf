@@ -907,6 +907,24 @@ textarea.field-input { height: auto; min-height: 84px; padding: 10px 12px; resiz
 .sp-msg:empty { display: none; }
 .sp-btn { margin-top: 22px; min-width: 140px; }
 
+/* ─── Trip sync + saved trips ─── */
+.trip-sync { font-size: 12.5px; margin: -12px 0 14px; }
+.trip-sync:empty { display: none; }
+.trip-sync.ok { color: #166534; } .trip-sync.warn { color: #9A5B00; }
+.trip-links { display: flex; gap: 18px; margin-top: 12px; }
+.trip-links button { background: none; border: none; cursor: pointer; font: 500 13px var(--sans); color: var(--accent); padding: 0; }
+.trip-links button:last-child { color: var(--ink-2); }
+.trip-links button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.saved-trips { display: none; margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; padding: 4px 14px; background: var(--sunk); max-height: 300px; overflow-y: auto; }
+.saved-trips.show { display: block; }
+.st-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.st-item:last-child { border-bottom: none; }
+.st-item.current .st-title { color: var(--accent); }
+.st-body { flex: 1; min-width: 0; }
+.st-title { font-size: 14px; font-weight: 500; color: var(--ink); }
+.st-meta { font-size: 12px; color: var(--ink-3); }
+.st-empty { padding: 14px 0; font-size: 13px; color: var(--ink-3); text-align: center; }
+
 /* แผนที่อยู่ใน stacking context ของตัวเอง ไม่ทับแผงด้านขวา */
 .map-frame { isolation: isolate; z-index: 0; }
 
@@ -1232,6 +1250,7 @@ body:has(.trip-tray.show) #listPanel.fs, body:has(.trip-tray.show) #mapView.fs {
     <button class="modal-close" onclick="closeTrip()" aria-label="ปิด"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="modal-title" id="tripTitle">🧳 รายการโรงเรียนที่จะไป</div>
     <div class="modal-sub" id="tripSub"></div>
+    <div class="trip-sync" id="tripSync"></div>
     <div class="trip-fields">
       <label class="tf">ชื่อรายการ
         <input id="tripName" class="field-input" placeholder="เช่น ลงพื้นที่ จ.น่าน ตุลาคม 2569" oninput="TRIP.title=this.value;saveTrip()">
@@ -1244,8 +1263,12 @@ body:has(.trip-tray.show) #listPanel.fs, body:has(.trip-tray.show) #mapView.fs {
       <button class="btn" onclick="saveTripNow()">💾 บันทึกรายการ</button>
       <button class="btn btn-ghost" onclick="exportTripPdf()">📄 ส่งออก PDF</button>
       <button class="btn btn-ghost" onclick="openTripRoute()" title="เปิดเส้นทางใน Google Maps">🧭 เส้นทาง</button>
-      <button class="btn btn-text" onclick="clearTrip()">ล้างรายการ</button>
     </div>
+    <div class="trip-links">
+      <button type="button" onclick="toggleSavedTrips()">📂 รายการที่บันทึกไว้</button>
+      <button type="button" onclick="newTrip()">＋ เริ่มรายการใหม่</button>
+    </div>
+    <div class="saved-trips" id="savedTrips"></div>
     <div class="queue-info" id="queueInfo"></div>
     <div class="modal-section">🚩 ลำดับการเดินทาง</div>
     <ol class="trip-list" id="tripList"></ol>
@@ -2636,7 +2659,7 @@ try {
   const saved = JSON.parse(localStorage.getItem(TRIP_STORE) || 'null');
   if (saved && Array.isArray(saved.keys)) TRIP = Object.assign(TRIP, saved);
 } catch (e) {}
-function saveTrip() { try { localStorage.setItem(TRIP_STORE, JSON.stringify(TRIP)); } catch (e) {} }
+function saveTrip(keepClean) { if (!keepClean) TRIP.dirty = true; try { localStorage.setItem(TRIP_STORE, JSON.stringify(TRIP)); } catch (e) {} if (typeof renderTripSync === 'function') renderTripSync(); }
 
 function schoolKey(r) {
   if (!r) return '';
@@ -2710,6 +2733,7 @@ function updateModalTripBtn() {
 function openTrip() {
   renderTripList();
   renderQueueInfo();
+  renderTripSync();
   const o = document.getElementById('tripOverlay');
   o.classList.add('open');
   o.querySelector('.modal').scrollTop = 0;
@@ -2856,17 +2880,31 @@ function exportPdf(rows, opt) {
       <h2>📦 อุปกรณ์ที่ได้รับจัดสรร</h2><table class="eq">${eq}</table>
       <h2>👤 ผู้บริหารและผู้ประสานงาน</h2>${kv([[contact[0][0], contact[0][1]], [contact[1][0], contact[1][1]], [contact[2][0], contact[2][1]], ['', ''], [contact[3][0], contact[3][1]], [contact[4][0], contact[4][1]], [contact[5][0], contact[5][1]], ['', '']])}
       <div class="notes"><div class="nt">📝 บันทึกการเยี่ยม</div><div class="lines"></div></div>
-      <div class="foot"><span>ระบบข้อมูลโรงเรียนเป้าหมายมูลนิธิ</span><span>พิมพ์เมื่อ ${thaiDate(today)}</span></div>
+      ${foot(chunks.length + i + 1, 'พิมพ์เมื่อ ' + thaiDate(today))}
     </section>`;
   };
+
+  // ── แบ่งหน้าสรุปให้พอดีหน้า A4 (หน้าแรก 11 แถว หน้าถัดไป 17 แถว) ──
+  const chunks = [];
+  if (cover) {
+    let i = 0, first = true;
+    while (i < rows.length || first) {
+      const n = first ? 11 : 17;
+      chunks.push(rows.slice(i, i + n).map((r, k) => [r, i + k]));
+      i += n; first = false;
+    }
+  }
+  const totalPages = chunks.length + rows.length;
+  const foot = (p, left) => `<div class="foot"><span>${left || 'ระบบข้อมูลโรงเรียนเป้าหมายมูลนิธิ'}</span><span>หน้า ${p} จาก ${totalPages}</span></div>`;
 
   let coverHtml = '';
   if (cover) {
     const students = rows.reduce((a, r) => a + (Number(r['จำนวนนักเรียน']) || 0), 0);
     const teachers = rows.reduce((a, r) => a + (Number(r['จำนวนครู']) || 0), 0);
     const route = routeUrl(rows);
-    coverHtml = `<section class="sheet">
+    coverHtml = chunks.map((chunk, ci) => `<section class="sheet">
       <div class="bar"></div>
+      ${ci === 0 ? `
       <div class="kicker">ระบบข้อมูลโรงเรียนเป้าหมายมูลนิธิ</div>
       <h1>🧳 ${escT(title)}</h1>
       <div class="meta">${travelDate ? `<span>🗓️ วันที่เดินทาง <b>${travelDate}</b></span>` : ''}<span>พิมพ์เมื่อ ${thaiDate(today)}</span></div>
@@ -2875,79 +2913,83 @@ function exportPdf(rows, opt) {
         <div><b>${students.toLocaleString()}</b><span>นักเรียนรวม (คน)</span></div>
         <div><b>${teachers.toLocaleString()}</b><span>ครูรวม (คน)</span></div>
         <div><b>${rows.filter(hasCoordRow).length}</b><span>มีพิกัด (แห่ง)</span></div>
-      </div>
-      <h2>🚩 ลำดับการเดินทาง</h2>
+      </div>` : `<div class="kicker">${escT(title)}</div>`}
+      <h2>🚩 ลำดับการเดินทาง${ci > 0 ? ' (ต่อ)' : ''}</h2>
       <table class="list">
-        <thead><tr><th class="n">ลำดับ</th><th>โรงเรียน</th><th>สังกัด</th><th class="r">นักเรียน / ครู</th><th>ผู้ติดต่อ</th></tr></thead>
-        <tbody>${rows.map((r, i) => {
+        <colgroup><col style="width:9%"><col style="width:33%"><col style="width:21%"><col style="width:12%"><col style="width:25%"></colgroup>
+        <thead><tr><th>ลำดับ</th><th>โรงเรียน</th><th>สังกัด</th><th class="r">นักเรียน / ครู</th><th>ผู้ติดต่อ</th></tr></thead>
+        <tbody>${chunk.map(([r, i]) => {
           const who = r['ผู้ระสานงาน'] && r['ผู้ระสานงาน'] !== '-' ? [r['ผู้ระสานงาน'], r['เบอร์3']] : [r['ผู้บริหาร'], r['เบอร์']];
-          return `<tr><td class="n"><span class="no">${i + 1}</span></td>
+          return `<tr><td><span class="no">${i + 1}</span></td>
             <td><b>${escT(r['โรงเรียนเป้าหมาย'])}</b><div class="sm">อ.${escT(r['อำเภอ'])} จ.${escT(r['จังหวัด'])}</div></td>
             <td class="sm2">${escT(r['สังกัด'])}</td>
             <td class="r">${escT(r['จำนวนนักเรียน'])} / ${escT(r['จำนวนครู'])}</td>
             <td>${escT(who[0])}<div class="sm">${escT(who[1])}</div></td></tr>`;
         }).join('')}</tbody>
       </table>
-      ${route ? `<p class="route">🧭 เส้นทางใน Google Maps: <a href="${route}">เปิดเส้นทาง${rows.filter(hasCoordRow).length > 10 ? ' (10 จุดแรก)' : ''}</a></p>` : ''}
-      <div class="foot"><span>รายละเอียดแต่ละโรงเรียนอยู่ในหน้าถัดไป</span><span>${rows.length + 1} หน้า</span></div>
-    </section>`;
+      ${ci === chunks.length - 1 && route ? `<p class="route">🧭 เส้นทางใน Google Maps: <a href="${route}">เปิดเส้นทาง${rows.filter(hasCoordRow).length > 10 ? ' (10 จุดแรก)' : ''}</a></p>` : ''}
+      ${foot(ci + 1, ci === chunks.length - 1 ? 'รายละเอียดแต่ละโรงเรียนอยู่ในหน้าถัดไป' : '')}
+    </section>`).join('');
   }
 
   const css = `
-    @page { size: A4; margin: 12mm 13mm 14mm; }
+    @page { size: A4 portrait; margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'IBM Plex Sans Thai', system-ui, sans-serif; color: #17212E; font-size: 10.5pt; line-height: 1.55;
-           background: #EEF0F3; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .toolbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 12px 20px;
-               background: #17212E; color: #fff; font-size: 13.5px; }
-    .toolbar span { flex: 1; opacity: .8; }
-    .toolbar button { height: 38px; padding: 0 18px; border-radius: 999px; border: none; cursor: pointer; color: #fff;
+    html, body { background: #E9EBEF; }
+    body { font-family: 'IBM Plex Sans Thai', system-ui, sans-serif; color: #17212E; font-size: 10pt; line-height: 1.5;
+           -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .toolbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 14px; padding: 12px 20px;
+               background: #17212E; color: #fff; font-size: 13px; line-height: 1.6; }
+    .toolbar .tip { flex: 1; opacity: .85; }
+    .toolbar .tip b { color: #C7D2FE; font-weight: 600; }
+    .toolbar button { height: 40px; padding: 0 20px; border-radius: 999px; border: none; cursor: pointer; color: #fff; white-space: nowrap;
                font: 500 14px 'IBM Plex Sans Thai', sans-serif; background: linear-gradient(135deg,#4361EE,#7B2FF7); }
-    .sheet { background: #fff; width: 210mm; min-height: 297mm; margin: 20px auto; padding: 13mm; box-shadow: 0 10px 30px -12px rgba(23,33,46,.25); }
-    .bar { height: 5px; border-radius: 3px; background: linear-gradient(90deg,#4361EE,#7B2FF7); margin-bottom: 14px; }
-    .kicker { font-size: 9pt; color: #8B929C; }
-    h1 { font-size: 20pt; font-weight: 600; line-height: 1.3; margin: 2px 0 6px; }
-    h2 { font-size: 11pt; font-weight: 600; margin: 16px 0 4px; padding-bottom: 4px; border-bottom: 2px solid #4361EE; }
-    .meta { display: flex; flex-wrap: wrap; gap: 3px 18px; font-size: 9.5pt; color: #4B5563; }
+    .sheet { background: #fff; width: 210mm; height: 296mm; margin: 20px auto; padding: 14mm 15mm 11mm;
+             display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px -12px rgba(23,33,46,.3); }
+    .bar { height: 5px; border-radius: 3px; background: linear-gradient(90deg,#4361EE,#7B2FF7); margin-bottom: 12px; flex-shrink: 0; }
+    .kicker { font-size: 8.5pt; color: #8B929C; }
+    h1 { font-size: 19pt; font-weight: 600; line-height: 1.3; margin: 2px 0 5px; }
+    h2 { font-size: 10.5pt; font-weight: 600; margin: 14px 0 4px; padding-bottom: 4px; border-bottom: 2px solid #4361EE; }
+    .meta { display: flex; flex-wrap: wrap; gap: 2px 16px; font-size: 9pt; color: #4B5563; }
     .meta b { font-weight: 600; color: #17212E; }
     a { color: #4361EE; text-decoration: none; }
-    table { width: 100%; border-collapse: collapse; }
-    table.kv td { padding: 5px 8px 5px 0; border-bottom: 1px solid #E6E8EB; vertical-align: top; font-size: 9.5pt; }
-    table.kv td.k { color: #8B929C; width: 17%; white-space: nowrap; }
-    table.kv td.v { width: 33%; padding-right: 14px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    td, th { word-wrap: break-word; overflow-wrap: anywhere; }
+    table.kv td { padding: 4.5px 8px 4.5px 0; border-bottom: 1px solid #E6E8EB; vertical-align: top; font-size: 9pt; }
+    table.kv td.k { color: #8B929C; width: 18%; }
+    table.kv td.v { width: 32%; padding-right: 12px; }
     table.eq { margin-top: 6px; }
-    table.eq td { border: 1px solid #E6E8EB; padding: 5px 9px; width: 25%; }
-    .en { font-size: 8.5pt; color: #8B929C; }
-    .ev { font-size: 13pt; font-weight: 600; line-height: 1.3; }
+    table.eq td { border: 1px solid #E6E8EB; padding: 4px 8px; width: 25%; }
+    .en { font-size: 8pt; color: #8B929C; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ev { font-size: 12pt; font-weight: 600; line-height: 1.3; }
     .ev.z { color: #CDD1D6; }
     .status { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
     .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-    .notes { margin-top: 16px; border: 1px solid #D4D8DD; border-radius: 8px; padding: 8px 12px 10px; break-inside: avoid; }
-    .nt { font-size: 9.5pt; font-weight: 600; }
-    .lines { height: 30mm; background: repeating-linear-gradient(to bottom, transparent 0, transparent 7.2mm, #E6E8EB 7.2mm, #E6E8EB 7.5mm); }
-    .summary { display: grid; grid-template-columns: repeat(4, 1fr); margin: 16px 0 4px; border: 1px solid #E6E8EB; border-radius: 8px; overflow: hidden; }
-    .summary div { padding: 10px 14px; border-left: 1px solid #E6E8EB; }
+    .notes { margin-top: 14px; border: 1px solid #D4D8DD; border-radius: 8px; padding: 7px 12px 8px; flex: 1; min-height: 28mm; display: flex; flex-direction: column; }
+    .nt { font-size: 9pt; font-weight: 600; }
+    .lines { flex: 1; background: repeating-linear-gradient(to bottom, transparent 0, transparent 7.2mm, #E6E8EB 7.2mm, #E6E8EB 7.5mm); }
+    .summary { display: grid; grid-template-columns: repeat(4, 1fr); margin: 14px 0 2px; border: 1px solid #E6E8EB; border-radius: 8px; overflow: hidden; }
+    .summary div { padding: 9px 13px; border-left: 1px solid #E6E8EB; }
     .summary div:first-child { border-left: none; }
-    .summary b { display: block; font-size: 17pt; font-weight: 600; line-height: 1.3; }
-    .summary span { font-size: 8.5pt; color: #8B929C; }
-    table.list { font-size: 9.5pt; margin-top: 4px; }
-    table.list th { text-align: left; font-weight: 500; font-size: 8.5pt; color: #8B929C; padding: 6px 8px 6px 0; border-bottom: 1px solid #D4D8DD; }
-    table.list td { padding: 7px 8px 7px 0; border-bottom: 1px solid #E6E8EB; vertical-align: top; }
-    table.list tr { break-inside: avoid; }
-    table.list .r { text-align: right; white-space: nowrap; }
-    table.list .n { width: 40px; }
-    .no { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; align-items: center; justify-content: center;
-          background: linear-gradient(135deg,#4361EE,#7B2FF7); color: #fff; font-size: 8.5pt; font-weight: 600; }
-    .sm { font-size: 8.5pt; color: #8B929C; }
-    .sm2 { font-size: 8.5pt; color: #4B5563; max-width: 45mm; }
-    .route { margin-top: 12px; font-size: 9.5pt; }
-    .foot { margin-top: 14px; display: flex; justify-content: space-between; font-size: 8pt; color: #8B929C; }
+    .summary b { display: block; font-size: 16pt; font-weight: 600; line-height: 1.3; }
+    .summary span { font-size: 8pt; color: #8B929C; }
+    table.list { font-size: 9pt; margin-top: 2px; }
+    table.list th { text-align: left; font-weight: 500; font-size: 8pt; color: #8B929C; padding: 6px 8px 6px 0; border-bottom: 1px solid #D4D8DD; }
+    table.list td { padding: 6px 8px 6px 0; border-bottom: 1px solid #E6E8EB; vertical-align: top; }
+    table.list .r { text-align: right; }
+    .no { display: inline-flex; width: 21px; height: 21px; border-radius: 50%; align-items: center; justify-content: center;
+          background: linear-gradient(135deg,#4361EE,#7B2FF7); color: #fff; font-size: 8pt; font-weight: 600; }
+    .sm { font-size: 8pt; color: #8B929C; }
+    .sm2 { font-size: 8.5pt; color: #4B5563; }
+    .route { margin-top: 10px; font-size: 9pt; }
+    .foot { margin-top: auto; padding-top: 10px; display: flex; justify-content: space-between; font-size: 7.5pt; color: #8B929C; flex-shrink: 0; }
     @media print {
-      body { background: #fff; }
+      html, body { background: #fff; }
       .toolbar { display: none; }
-      .sheet { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
-      .sheet + .sheet { break-before: page; }
+      .sheet { margin: 0; box-shadow: none; break-after: page; page-break-after: always; }
+      .sheet:last-of-type { break-after: auto; page-break-after: auto; }
     }`;
+
 
   const SC = 'script';
   const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
@@ -2956,7 +2998,7 @@ function exportPdf(rows, opt) {
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
     <style>${css}</style></head><body>
-    <div class="toolbar"><span>📄 เอกสาร ${rows.length + (cover ? 1 : 0)} หน้า ในหน้าต่างพิมพ์ให้เลือกปลายทางเป็น “บันทึกเป็น PDF” (Save as PDF)</span>
+    <div class="toolbar"><span class="tip">📄 เอกสาร ${chunks.length + rows.length} หน้า A4 &nbsp; ในหน้าต่างพิมพ์ตั้งค่า: ปลายทาง <b>บันทึกเป็น PDF</b>, ระยะขอบ <b>ไม่มี</b> หรือ <b>ค่าเริ่มต้น</b>, ขนาด <b>100%</b> และติ๊ก <b>กราฟิกพื้นหลัง</b></span>
       <button onclick="window.print()">🖨️ บันทึกเป็น PDF</button></div>
     ${coverHtml}${rows.map(schoolPage).join('')}
     <${SC}>
@@ -3096,7 +3138,11 @@ async function postToScript(payload) {
     });
   } finally { clearTimeout(t); }
   const j = await res.json();
-  if (!j.success) { const err = new Error(j.error || 'บันทึกไม่สำเร็จ'); err.server = true; throw err; }
+  if (!j.success) {
+    let m = j.error || 'บันทึกไม่สำเร็จ';
+    if (/ไม่รู้จักคำสั่ง/.test(m)) m += ' — Apps Script ยังเป็นเวอร์ชันเก่า กรุณาวางโค้ดใหม่แล้ว Deploy เป็น New version';
+    const err = new Error(m); err.server = true; throw err;
+  }
   return j.data;
 }
 
@@ -3409,11 +3455,115 @@ function closeStatus() {
   pop.classList.remove('open');
 }
 
-function saveTripNow() {
+function saveTripNow() { return saveTripToSheet(); }
+
+function tripPayload() {
+  let by = ''; try { by = localStorage.getItem(VISITOR_STORE) || ''; } catch (e) {}
+  return {
+    id: TRIP.id, title: TRIP.title, date: TRIP.date, by,
+    schools: tripRows().map((r, i) => {
+      const who = r['ผู้ระสานงาน'] && r['ผู้ระสานงาน'] !== '-' ? [r['ผู้ระสานงาน'], r['เบอร์3']] : [r['ผู้บริหาร'], r['เบอร์']];
+      return {
+        'ลำดับ': String(i + 1), 'รหัส รร.': r['รหัส รร.'] || '', 'โรงเรียน': r['โรงเรียนเป้าหมาย'] || '',
+        'อำเภอ': r['อำเภอ'] || '', 'จังหวัด': r['จังหวัด'] || '', 'ภูมิภาค': r['ภูมิภาค'] || '',
+        'นักเรียน': r['จำนวนนักเรียน'] || '', 'ครู': r['จำนวนครู'] || '',
+        'ผู้ติดต่อ': who[0] || '', 'เบอร์ผู้ติดต่อ': who[1] || '',
+        'ละติจูด': r['lat.'] || '', 'ลองจิจูด': r['long.'] || ''
+      };
+    })
+  };
+}
+
+async function saveTripToSheet(silent) {
   TRIP.title = document.getElementById('tripName').value.trim();
   TRIP.date = document.getElementById('tripDate').value;
+  if (!TRIP.keys.length) { if (!silent) showStatus('warn', 'ยังไม่มีโรงเรียนในรายการ', 'เลือกโรงเรียนจากตารางหรือแผนที่ก่อนบันทึก'); return; }
+  if (!TRIP.title) { if (!silent) showStatus('warn', 'กรุณาตั้งชื่อรายการ', 'ใส่ชื่อรายการก่อนบันทึก เพื่อให้ค้นหาใน Google Sheets ได้ง่าย'); document.getElementById('tripName').focus(); return; }
+  if (!TRIP.id) TRIP.id = 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   saveTrip();
-  showStatus('success', 'บันทึกรายการแล้ว', `${TRIP.title || 'รายการโรงเรียนที่จะไป'} (${TRIP.keys.length} โรงเรียน)`);
+  if (!APPS_SCRIPT_URL) { if (!silent) showStatus('warn', 'บันทึกไว้ในเครื่องแล้ว', 'ยังไม่ได้ตั้งค่า Apps Script URL จึงยังไม่ได้บันทึกลง Google Sheets'); return; }
+  if (!silent) showStatus('loading', 'กำลังบันทึกรายการ…', `${TRIP.title} (${TRIP.keys.length} โรงเรียน)`);
+  try {
+    const res = await postToScript({ action: 'saveTrip', trip: tripPayload() });
+    TRIP.syncedAt = res && res.savedAt ? res.savedAt : new Date().toLocaleString('th-TH');
+    TRIP.dirty = false; saveTrip(true);
+    renderTripSync();
+    if (!silent) showStatus('success', 'บันทึกลง Google Sheets แล้ว', `${TRIP.title} (${TRIP.keys.length} โรงเรียน) อยู่ในชีต "รายการเดินทาง"`);
+    if (savedTripsOpen) loadSavedTrips();
+  } catch (e) {
+    renderTripSync();
+    if (silent) return;
+    if (e.server) showStatus('error', 'บันทึกไม่สำเร็จ', e.message);
+    else showStatus('warn', 'บันทึกไว้ในเครื่องแล้ว', 'ยังเชื่อมต่อ Google Sheets ไม่ได้ ลองกดบันทึกอีกครั้งเมื่อมีสัญญาณ');
+  }
+}
+
+function renderTripSync() {
+  const el = document.getElementById('tripSync');
+  if (!el) return;
+  if (!TRIP.keys.length && !TRIP.id) { el.className = 'trip-sync'; el.textContent = ''; return; }
+  if (TRIP.syncedAt && !TRIP.dirty) { el.className = 'trip-sync ok'; el.textContent = `☁️ บันทึกใน Google Sheets แล้ว (${TRIP.syncedAt})`; }
+  else if (TRIP.syncedAt) { el.className = 'trip-sync warn'; el.textContent = '✏️ มีการแก้ไขที่ยังไม่ได้บันทึกลง Google Sheets'; }
+  else { el.className = 'trip-sync warn'; el.textContent = '⚠️ ยังไม่ได้บันทึกลง Google Sheets กด "💾 บันทึกรายการ"'; }
+}
+
+function newTrip() {
+  if (TRIP.keys.length && TRIP.dirty && !confirm('เริ่มรายการใหม่? รายการปัจจุบันยังไม่ได้บันทึกลง Google Sheets')) return;
+  TRIP = { title: '', date: '', keys: [] };
+  saveTrip(true); onTripChanged(null); renderTripList(); renderTripSync();
+}
+
+// ── รายการที่บันทึกไว้ใน Google Sheets ──
+let savedTripsOpen = false, SAVED_TRIPS = [];
+function toggleSavedTrips() {
+  savedTripsOpen = !savedTripsOpen;
+  const el = document.getElementById('savedTrips');
+  el.classList.toggle('show', savedTripsOpen);
+  if (savedTripsOpen) loadSavedTrips();
+}
+async function loadSavedTrips() {
+  const el = document.getElementById('savedTrips');
+  if (!APPS_SCRIPT_URL) { el.innerHTML = '<div class="st-empty">ยังไม่ได้ตั้งค่า Apps Script URL</div>'; return; }
+  el.innerHTML = '<div class="st-empty">กำลังโหลด…</div>';
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getTrips&_=' + Date.now(), { cache: 'no-store' });
+    const j = await res.json();
+    if (!j.success) throw new Error(j.error || 'โหลดไม่สำเร็จ');
+    const d = j.data || [];
+    if (d.length && d[0].schools === undefined) throw new Error('Apps Script ยังเป็นเวอร์ชันเก่า กรุณาอัปเดตและ Deploy เป็น New version');
+    SAVED_TRIPS = d;
+  } catch (e) { el.innerHTML = `<div class="st-empty">โหลดไม่สำเร็จ: ${escT(e.message)}</div>`; return; }
+  if (!SAVED_TRIPS.length) { el.innerHTML = '<div class="st-empty">ยังไม่มีรายการที่บันทึกไว้</div>'; return; }
+  el.innerHTML = SAVED_TRIPS.map((t, i) => `
+    <div class="st-item ${t.id === TRIP.id ? 'current' : ''}">
+      <div class="st-body">
+        <div class="st-title">${escT(t.title || 'ไม่มีชื่อ')}${t.id === TRIP.id ? ' <span class="chip wk-yes">กำลังเปิด</span>' : ''}</div>
+        <div class="st-meta">${t.date ? '🗓️ ' + thaiShortDate(t.date) + ', ' : ''}${t.schools.length} โรงเรียน${t.by ? ', โดย ' + escT(t.by) : ''}${t.savedAt ? ', บันทึก ' + escT(t.savedAt) : ''}</div>
+      </div>
+      <button class="mini-btn primary" onclick="openSavedTrip(${i})">📂 เปิด</button>
+      <button class="icon-btn del" onclick="deleteSavedTrip(${i})" aria-label="ลบรายการ">✕</button>
+    </div>`).join('');
+}
+function openSavedTrip(i) {
+  const t = SAVED_TRIPS[i];
+  if (!t) return;
+  if (TRIP.keys.length && TRIP.dirty && TRIP.id !== t.id && !confirm('เปิดรายการนี้แทนรายการปัจจุบัน? รายการปัจจุบันยังไม่ได้บันทึกลง Google Sheets')) return;
+  TRIP = {
+    id: t.id, title: t.title || '', date: t.date || '', syncedAt: t.savedAt || '', dirty: false,
+    keys: t.schools.map(sc => schoolKey({ 'รหัส รร.': sc['รหัส รร.'], 'โรงเรียนเป้าหมาย': sc['โรงเรียน'], 'จังหวัด': sc['จังหวัด'] }))
+  };
+  saveTrip(true); onTripChanged(null); renderTripList(); renderTripSync(); loadSavedTrips();
+  showStatus('success', 'เปิดรายการแล้ว', `${t.title} (${t.schools.length} โรงเรียน)`);
+}
+async function deleteSavedTrip(i) {
+  const t = SAVED_TRIPS[i];
+  if (!t || !confirm(`ลบรายการ "${t.title}" ออกจาก Google Sheets?`)) return;
+  showStatus('loading', 'กำลังลบ…', t.title);
+  try { await postToScript({ action: 'deleteTrip', id: t.id }); }
+  catch (e) { showStatus('error', 'ลบไม่สำเร็จ', e.message); return; }
+  if (TRIP.id === t.id) { delete TRIP.id; delete TRIP.syncedAt; TRIP.dirty = true; saveTrip(true); renderTripSync(); }
+  showStatus('success', 'ลบรายการแล้ว', t.title);
+  loadSavedTrips();
 }
 
 let toastTimer = null;
