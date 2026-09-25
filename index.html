@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ระบบข้อมูลโรงเรียนเป้าหมายมูลนิธิ</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=Noto+Serif+Thai:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
 
 /* ═══════════════════════════════════════════════════════════
    Design tokens — quiet ink on paper, one deep navy accent
@@ -19,10 +19,13 @@
   --ink:       #17212E;
   --ink-2:     #4B5563;
   --ink-3:     #8B929C;
-  --accent:    #1F3A5A;
-  --accent-hover: #16304D;
-  --accent-soft:  #EAEFF5;
-  --gold:      #A8844A;
+  --accent:    #4361EE;
+  --accent-2:  #7B2FF7;
+  --accent-hover: #3651D4;
+  --accent-soft:  #EEF1FE;
+  --grad:      linear-gradient(135deg, #4361EE 0%, #7B2FF7 100%);
+  --shadow-card:  0 1px 2px rgba(23,33,46,.04), 0 10px 28px -12px rgba(67,97,238,.18);
+  --shadow-hover: 0 2px 4px rgba(23,33,46,.05), 0 18px 36px -14px rgba(67,97,238,.32);
 
   --r-central: #4A6A9A;
   --r-north:   #5E8A74;
@@ -36,7 +39,7 @@
   --bad-soft:  #F8ECEB;
 
   --sans:  'IBM Plex Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --serif: 'Noto Serif Thai', Georgia, 'Times New Roman', serif;
+  --serif: var(--sans); /* ใช้ฟอนต์เดียวทั้งระบบ */
 
   --radius: 12px;
   --radius-sm: 8px;
@@ -598,6 +601,181 @@ td.wrap-sm { white-space: normal; min-width: 150px; max-width: 200px; font-size:
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+/* ═══════════════════════════════════════════════════════════
+   v2 — ลูกเล่น: ม่วงไล่เฉด อีโมจิ เงานุ่ม + ฟอนต์เดียวทั้งระบบ
+   ═══════════════════════════════════════════════════════════ */
+body {
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(67,97,238,.10) 0, transparent 42%),
+    radial-gradient(circle at 100% 100%, rgba(123,47,247,.08) 0, transparent 40%);
+  background-attachment: fixed;
+}
+.header { background: rgba(255,255,255,.95); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); }
+.header h1 { font-weight: 600; font-size: 19px; letter-spacing: 0; }
+.tab.active { color: var(--accent); }
+.tab.active::after { background: var(--grad); height: 2.5px; border-radius: 2px; }
+.stat-val, .kpi-val, .equip-val { font-weight: 600; letter-spacing: -.01em; }
+.stat-card.lead .stat-val, .kpi-grid.primary .kpi-card:first-child .kpi-val {
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.modal-title { font-weight: 600; }
+.popup-name { font-weight: 600; }
+
+.stats-bar, .filters, .table-container, .chart-card, .kpi-grid, .map-frame { box-shadow: var(--shadow-card); }
+.chart-card { transition: box-shadow .2s, transform .2s; }
+.chart-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+
+.btn:not(.btn-ghost):not(.btn-text), .modal-map-btn:not(.secondary) {
+  background: var(--grad); border-color: transparent;
+  box-shadow: 0 6px 16px -6px rgba(67,97,238,.55);
+  transition: transform .15s, box-shadow .15s;
+}
+.btn:not(.btn-ghost):not(.btn-text):hover, .modal-map-btn:not(.secondary):hover {
+  background: var(--grad); transform: translateY(-1px); box-shadow: 0 10px 22px -8px rgba(67,97,238,.65);
+}
+.pagination button.active { background: var(--grad); border-color: transparent; box-shadow: 0 4px 12px -4px rgba(67,97,238,.6); }
+.ms-btn .ms-count, .pill, .map-province-tag { background: var(--grad) !important; }
+.work-fill { background: var(--grad); }
+.cluster-icon { background: var(--grad); box-shadow: 0 0 0 5px rgba(123,47,247,.16), 0 6px 14px -4px rgba(67,97,238,.55); }
+.modal-section { border-bottom: 2px solid transparent; border-image: var(--grad) 1; }
+.sync-btn:hover { color: var(--accent); border-color: var(--accent); }
+.coord-btn, .popup-link { color: var(--accent) !important; }
+tbody tr:hover { background: linear-gradient(90deg, #F1F4FF, #F8F5FF); }
+
+.pill {
+  min-width: 18px; height: 18px; padding: 0 6px; border-radius: 999px; color: #fff;
+  font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center;
+}
+.pill:empty { display: none; }
+
+/* checkbox ใช้ร่วมกัน */
+.chk {
+  appearance: none; -webkit-appearance: none; width: 17px; height: 17px; flex-shrink: 0; vertical-align: middle;
+  border: 1.6px solid var(--line-2); border-radius: 5px; background: var(--surface);
+  cursor: pointer; position: relative; transition: background .12s, border-color .12s, transform .12s;
+}
+.chk:hover { border-color: var(--accent); }
+.chk:checked, .chk:indeterminate { background: var(--grad); border-color: transparent; }
+.chk:checked::after {
+  content: ''; position: absolute; left: 5px; top: 1.5px; width: 4px; height: 9px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+.chk:indeterminate::after { content: ''; position: absolute; left: 3.5px; right: 3.5px; top: 6.5px; height: 2px; background: #fff; border-radius: 1px; }
+.chk:active { transform: scale(.9); }
+th.check, td.check { width: 44px; padding-right: 0 !important; }
+tbody tr.in-trip { background: linear-gradient(90deg, rgba(67,97,238,.07), rgba(123,47,247,.02) 60%, transparent); }
+tbody tr.in-trip td.check { box-shadow: inset 3px 0 0 var(--accent); }
+
+/* ─── Full screen ─── */
+body.fs-lock { overflow: hidden; }
+#listPanel.fs, #mapView.fs {
+  position: fixed; inset: 0; z-index: 90; background: var(--bg);
+  padding: 16px var(--pad-x); display: flex !important; flex-direction: column; overflow: hidden;
+  animation: fsIn .22s ease;
+}
+@keyframes fsIn { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: none; } }
+#listPanel.fs .filters { margin-top: 0; flex-shrink: 0; }
+#listPanel.fs #tableView { display: flex !important; flex-direction: column; flex: 1; min-height: 0; }
+#listPanel.fs .table-wrap { flex: 1; min-height: 0; display: flex; }
+#listPanel.fs .table-container { flex: 1; max-height: none; min-height: 0; }
+#listPanel.fs .pagination { flex-shrink: 0; padding-top: 12px; }
+#mapView.fs .map-frame { flex: 1; min-height: 0; }
+#mapView.fs #leafletMap { height: 100%; min-height: 0; }
+#mapView.fs .map-legend { flex-shrink: 0; }
+.fs-btn.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+/* ─── Map popup actions ─── */
+.popup-actions { display: flex; gap: 6px; margin-top: 12px; }
+.popup-btn {
+  flex: 1; height: 32px; border-radius: 7px; cursor: pointer; font: 500 12.5px var(--sans);
+  background: var(--surface); color: var(--ink-2); border: 1px solid var(--line-2); white-space: nowrap; padding: 0 10px;
+}
+.popup-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.popup-btn.primary { background: var(--grad); color: #fff; border-color: transparent; }
+.popup-btn.primary.on { background: var(--accent-soft); color: var(--accent); border-color: #C7D2FE; }
+.leaflet-control-layers { border: 1px solid var(--line-2) !important; border-radius: 8px !important; box-shadow: var(--shadow-card) !important; font-family: var(--sans); }
+.leaflet-control-layers-expanded { padding: 8px 12px !important; font-size: 13px; }
+
+/* ─── Header trip button ─── */
+.trip-open { position: relative; }
+.trip-open.bump { animation: bump .45s ease; }
+@keyframes bump { 30% { transform: scale(1.08); } 60% { transform: scale(.97); } }
+
+/* ─── Detail drawer extras ─── */
+.modal-extra { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.modal-map-btn.trip-toggle.on { background: var(--accent-soft) !important; color: var(--accent); border-color: #C7D2FE !important; box-shadow: none !important; transform: none !important; }
+button.modal-map-btn { cursor: pointer; font-family: var(--sans); }
+
+/* ─── Trip drawer ─── */
+#modalOverlay { z-index: 120; }
+#tripOverlay  { z-index: 110; }
+.trip-fields { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-top: 4px; }
+.tf { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: var(--ink-3); }
+.field-input {
+  height: 40px; padding: 0 12px; border: 1px solid var(--line-2); border-radius: var(--radius-sm);
+  font: 400 14px var(--sans); color: var(--ink); background: var(--surface); outline: none; width: 100%;
+}
+.field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.trip-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.trip-list { list-style: none; margin-top: 4px; }
+.trip-item {
+  display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line);
+  animation: tripIn .25s ease both;
+}
+@keyframes tripIn { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
+.trip-num {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: var(--grad); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;
+  box-shadow: 0 4px 10px -4px rgba(67,97,238,.6);
+}
+.trip-body { flex: 1; min-width: 0; cursor: pointer; }
+.trip-name { font-size: 14.5px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trip-body:hover .trip-name { color: var(--accent); }
+.trip-meta { font-size: 12.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trip-acts { display: flex; gap: 4px; flex-shrink: 0; }
+.icon-btn {
+  width: 30px; height: 30px; border-radius: 7px; border: 1px solid transparent; background: none;
+  color: var(--ink-3); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.icon-btn:hover:not(:disabled) { border-color: var(--line-2); color: var(--ink); }
+.icon-btn.del:hover { color: var(--bad); border-color: #EBC9C7; }
+.icon-btn:disabled { opacity: .25; cursor: default; }
+.trip-empty { text-align: center; padding: 48px 12px; color: var(--ink-3); font-size: 13.5px; line-height: 1.8; }
+.trip-empty b { display: block; font-size: 30px; margin-bottom: 6px; }
+
+/* ─── Floating trip tray ─── */
+.trip-tray {
+  position: fixed; left: 50%; bottom: 20px; z-index: 95;
+  display: flex; align-items: center; gap: 8px; padding: 7px 7px 7px 18px;
+  background: #17212E; color: #fff; border-radius: 999px;
+  box-shadow: 0 16px 40px -10px rgba(23,33,46,.45), 0 0 0 1px rgba(255,255,255,.06) inset;
+  transform: translate(-50%, 140%); opacity: 0; pointer-events: none;
+  transition: transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .2s;
+}
+.trip-tray.show { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.trip-tray.bump { animation: trayBump .45s ease; }
+@keyframes trayBump { 35% { transform: translate(-50%, -6px); } }
+.tt-count { font-size: 13.5px; margin-right: 6px; white-space: nowrap; }
+.tt-count b { font-weight: 600; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; filter: brightness(1.6); }
+.tt-btn {
+  height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,.18);
+  background: transparent; color: #fff; font: 500 13px var(--sans); cursor: pointer; white-space: nowrap;
+}
+.tt-btn:hover { background: rgba(255,255,255,.08); }
+.tt-btn.primary { background: var(--grad); border-color: transparent; }
+
+@media (max-width: 760px) {
+  .trip-fields { grid-template-columns: 1fr; }
+  .trip-tray { left: 12px; right: 12px; transform: translateY(140%); bottom: 12px; }
+  .trip-tray.show { transform: none; }
+  @keyframes trayBump { 35% { transform: translateY(-6px); } }
+  .tt-count { flex: 1; }
+  .fs-btn .fs-text { display: none; }
+}
+@media print { .trip-tray { display: none; } }
+body:has(.modal-overlay.open) .trip-tray { opacity: 0; pointer-events: none; }
+body:has(.trip-tray.show) .main { padding-bottom: 96px; }
+body:has(.trip-tray.show) #listPanel.fs, body:has(.trip-tray.show) #mapView.fs { padding-bottom: 76px; }
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
@@ -634,6 +812,9 @@ td.wrap-sm { white-space: normal; min-width: 150px; max-width: 200px; font-size:
     </div>
     <div class="header-right">
       <div class="last-sync-label" id="lastSyncLabel"></div>
+      <button class="sync-btn trip-open" id="tripOpenBtn" onclick="openTrip()" title="รายการโรงเรียนที่จะไป">
+        🧳 <span class="sync-text">รายการที่จะไป</span> <span class="pill" id="tripCount"></span>
+      </button>
       <button class="sync-btn" onclick="loadData(true)" title="ดึงข้อมูลล่าสุดจาก Google Sheets">
         <span class="sync-icon" id="syncIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></span>
         <span class="sync-text">รีเฟรช</span>
@@ -642,9 +823,9 @@ td.wrap-sm { white-space: normal; min-width: 150px; max-width: 200px; font-size:
     </div>
   </div>
   <nav class="tabs wrap" aria-label="มุมมอง">
-    <button class="tab active" onclick="switchTab('table')" id="tab-table">รายชื่อโรงเรียน</button>
-    <button class="tab" onclick="switchTab('dashboard')" id="tab-dashboard">ภาพรวม</button>
-    <button class="tab" onclick="switchTab('map')" id="tab-map">แผนที่</button>
+    <button class="tab active" onclick="switchTab('table')" id="tab-table">📋 รายชื่อโรงเรียน</button>
+    <button class="tab" onclick="switchTab('dashboard')" id="tab-dashboard">📊 ภาพรวม</button>
+    <button class="tab" onclick="switchTab('map')" id="tab-map">🗺️ แผนที่</button>
   </nav>
 </header>
 
@@ -652,15 +833,16 @@ td.wrap-sm { white-space: normal; min-width: 150px; max-width: 200px; font-size:
 
   <!-- Stats -->
   <section class="stats-bar" id="statsBar" aria-label="สรุปตามตัวกรอง">
-    <div class="stat-card lead"><div class="stat-label">โรงเรียนทั้งหมด</div><div class="stat-val" id="s-total">—</div><div class="stat-sub">แห่ง</div></div>
+    <div class="stat-card lead"><div class="stat-label">🏫 โรงเรียนทั้งหมด</div><div class="stat-val" id="s-total">—</div><div class="stat-sub">แห่ง</div></div>
     <div class="stat-card c"><div class="stat-label">ภาคกลาง</div><div class="stat-val" id="s-central">—</div><div class="stat-sub">แห่ง</div></div>
     <div class="stat-card n"><div class="stat-label">ภาคเหนือ</div><div class="stat-val" id="s-north">—</div><div class="stat-sub">แห่ง</div></div>
     <div class="stat-card ne"><div class="stat-label">ภาคอีสาน</div><div class="stat-val" id="s-ne">—</div><div class="stat-sub">แห่ง</div></div>
     <div class="stat-card s"><div class="stat-label">ภาคใต้</div><div class="stat-val" id="s-south">—</div><div class="stat-sub">แห่ง</div></div>
-    <div class="stat-card"><div class="stat-label">นักเรียนรวม</div><div class="stat-val" id="s-students">—</div><div class="stat-sub">คน</div></div>
-    <div class="stat-card alert"><div class="stat-label">ยุบเลิก / โอน</div><div class="stat-val" id="s-closed">—</div><div class="stat-sub">แห่ง</div></div>
+    <div class="stat-card"><div class="stat-label">🎒 นักเรียนรวม</div><div class="stat-val" id="s-students">—</div><div class="stat-sub">คน</div></div>
+    <div class="stat-card alert"><div class="stat-label">🛑 ยุบเลิก / โอน</div><div class="stat-val" id="s-closed">—</div><div class="stat-sub">แห่ง</div></div>
   </section>
 
+  <div id="listPanel">
   <!-- Filters -->
   <section class="filters" id="filterBar" aria-label="ค้นหาและตัวกรอง">
     <div class="filter-row">
@@ -675,6 +857,7 @@ td.wrap-sm { white-space: normal; min-width: 150px; max-width: 200px; font-size:
       <button type="button" class="btn btn-text" onclick="clearFilters()">ล้างตัวกรอง</button>
       <div class="filter-spacer"></div>
       <div class="result-count">แสดง <span id="resultCount">—</span> รายการ</div>
+      <button type="button" class="btn btn-ghost fs-btn" data-fs="listPanel" onclick="toggleFS('listPanel')" title="แสดงตารางเต็มจอ">⛶ <span class="fs-text">เต็มจอ</span></button>
       <div class="menu-wrap" id="exportWrap">
         <button type="button" class="btn btn-ghost" onclick="toggleExportMenu(event)" aria-haspopup="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
@@ -761,6 +944,7 @@ td.wrap-sm { white-space: normal; min-width: 150px; max-width: 200px; font-size:
         <table id="mainTable">
           <thead>
             <tr>
+              <th class="check"><input type="checkbox" class="chk" id="pageCheck" onchange="togglePageTrip(this.checked)" title="เลือกทุกโรงเรียนในหน้านี้" aria-label="เลือกทุกโรงเรียนในหน้านี้"></th>
               <th>#</th>
               <th class="sortable" data-col="รหัส รร." onclick="sortBy('รหัส รร.')">SMIS</th>
               <th>ชื่อโรงเรียน</th>
@@ -783,43 +967,44 @@ td.wrap-sm { white-space: normal; min-width: 150px; max-width: 200px; font-size:
     </div>
     <div class="pagination" id="pagination"></div>
   </div>
+  </div><!-- /listPanel -->
 
   <!-- Dashboard View -->
   <div id="dashView">
     <div class="kpi-grid primary">
-      <div class="kpi-card"><div class="kpi-label">โรงเรียนทั้งหมด</div><div class="kpi-val" id="kpi-total">—</div><div class="kpi-sub">แห่ง</div></div>
-      <div class="kpi-card"><div class="kpi-label">นักเรียนรวม</div><div class="kpi-val" id="kpi-students">—</div><div class="kpi-sub">คน</div></div>
-      <div class="kpi-card"><div class="kpi-label">ครูรวม</div><div class="kpi-val" id="kpi-teachers">—</div><div class="kpi-sub">คน</div></div>
-      <div class="kpi-card" id="kpiClosedCard"><div class="kpi-label">ยุบเลิก / โอน</div><div class="kpi-val" id="kpi-closed">—</div><div class="kpi-sub">แห่ง</div></div>
+      <div class="kpi-card"><div class="kpi-label">🏫 โรงเรียนทั้งหมด</div><div class="kpi-val" id="kpi-total">—</div><div class="kpi-sub">แห่ง</div></div>
+      <div class="kpi-card"><div class="kpi-label">🎒 นักเรียนรวม</div><div class="kpi-val" id="kpi-students">—</div><div class="kpi-sub">คน</div></div>
+      <div class="kpi-card"><div class="kpi-label">👩‍🏫 ครูรวม</div><div class="kpi-val" id="kpi-teachers">—</div><div class="kpi-sub">คน</div></div>
+      <div class="kpi-card" id="kpiClosedCard"><div class="kpi-label">🛑 ยุบเลิก / โอน</div><div class="kpi-val" id="kpi-closed">—</div><div class="kpi-sub">แห่ง</div></div>
     </div>
     <div class="kpi-grid secondary">
-      <div class="kpi-card"><div class="kpi-label">นักเรียนเฉลี่ยต่อโรงเรียน</div><div class="kpi-val" id="kpi-avg">—</div><div class="kpi-sub">คน</div></div>
-      <div class="kpi-card"><div class="kpi-label">ได้รับใบงานแล้ว</div><div class="kpi-val" id="kpi-work">—</div><div class="kpi-sub">แห่ง</div></div>
-      <div class="kpi-card"><div class="kpi-label">ทดแทน DGB 2565</div><div class="kpi-val" id="kpi-dgb">—</div><div class="kpi-sub">แห่ง</div></div>
-      <div class="kpi-card"><div class="kpi-label">มีพิกัด GPS</div><div class="kpi-val" id="kpi-coord">—</div><div class="kpi-sub">แห่ง</div></div>
-      <div class="kpi-card"><div class="kpi-label">อุปกรณ์ที่จัดสรร</div><div class="kpi-val" id="kpi-equip-total">—</div><div class="kpi-sub">ชิ้น</div></div>
+      <div class="kpi-card"><div class="kpi-label">📐 นักเรียนเฉลี่ยต่อโรงเรียน</div><div class="kpi-val" id="kpi-avg">—</div><div class="kpi-sub">คน</div></div>
+      <div class="kpi-card"><div class="kpi-label">📝 ได้รับใบงานแล้ว</div><div class="kpi-val" id="kpi-work">—</div><div class="kpi-sub">แห่ง</div></div>
+      <div class="kpi-card"><div class="kpi-label">🔁 ทดแทน DGB 2565</div><div class="kpi-val" id="kpi-dgb">—</div><div class="kpi-sub">แห่ง</div></div>
+      <div class="kpi-card"><div class="kpi-label">📍 มีพิกัด GPS</div><div class="kpi-val" id="kpi-coord">—</div><div class="kpi-sub">แห่ง</div></div>
+      <div class="kpi-card"><div class="kpi-label">📦 อุปกรณ์ที่จัดสรร</div><div class="kpi-val" id="kpi-equip-total">—</div><div class="kpi-sub">ชิ้น</div></div>
     </div>
 
     <div class="dash-grid">
-      <div class="chart-card"><div class="chart-title">โรงเรียนแยกตามภูมิภาค</div><canvas id="chartRegion" height="170"></canvas></div>
-      <div class="chart-card"><div class="chart-title">เป้าหมายรายปี</div><canvas id="chartYear" height="170"></canvas></div>
-      <div class="chart-card"><div class="chart-title">ประเภทโรงเรียน</div><canvas id="chartSize" height="170"></canvas></div>
+      <div class="chart-card"><div class="chart-title">🌏 โรงเรียนแยกตามภูมิภาค</div><canvas id="chartRegion" height="170"></canvas></div>
+      <div class="chart-card"><div class="chart-title">📅 เป้าหมายรายปี</div><canvas id="chartYear" height="170"></canvas></div>
+      <div class="chart-card"><div class="chart-title">📏 ประเภทโรงเรียน</div><canvas id="chartSize" height="170"></canvas></div>
     </div>
     <div class="dash-grid-wide">
-      <div class="chart-card"><div class="chart-title">10 จังหวัดที่มีโรงเรียนมากที่สุด</div><canvas id="chartProvince" height="170"></canvas></div>
-      <div class="chart-card"><div class="chart-title">สถานะทดแทน DGB 2565</div><canvas id="chartDgb" height="170"></canvas></div>
+      <div class="chart-card"><div class="chart-title">🏆 10 จังหวัดที่มีโรงเรียนมากที่สุด</div><canvas id="chartProvince" height="170"></canvas></div>
+      <div class="chart-card"><div class="chart-title">✅ สถานะทดแทน DGB 2565</div><canvas id="chartDgb" height="170"></canvas></div>
     </div>
     <div class="dash-grid-wide">
       <div class="chart-card">
-        <div class="chart-title">โรงเรียนที่ยุบเลิก / โอน <span id="closedCountBadge" class="closed-count-badge">0</span></div>
+        <div class="chart-title">🛑 โรงเรียนที่ยุบเลิก / โอน <span id="closedCountBadge" class="closed-count-badge">0</span></div>
         <div class="closed-list-card" id="closedList"></div>
       </div>
-      <div class="chart-card"><div class="chart-title">สถานะโรงเรียนโดยรวม</div><canvas id="chartStatus" height="170"></canvas></div>
+      <div class="chart-card"><div class="chart-title">🚦 สถานะโรงเรียนโดยรวม</div><canvas id="chartStatus" height="170"></canvas></div>
     </div>
     <div class="dash-grid-3">
-      <div class="chart-card"><div class="chart-title">อุปกรณ์ที่จัดสรร 8 รายการหลัก</div><canvas id="chartEquip" height="170"></canvas></div>
-      <div class="chart-card"><div class="chart-title">นักเรียนต่อครู 1 คน แยกตามภาค</div><canvas id="chartRatio" height="170"></canvas></div>
-      <div class="chart-card"><div class="chart-title">ใบงาน</div><div id="workSummary"></div></div>
+      <div class="chart-card"><div class="chart-title">📦 อุปกรณ์ที่จัดสรร 8 รายการหลัก</div><canvas id="chartEquip" height="170"></canvas></div>
+      <div class="chart-card"><div class="chart-title">👨‍🏫 นักเรียนต่อครู 1 คน แยกตามภาค</div><canvas id="chartRatio" height="170"></canvas></div>
+      <div class="chart-card"><div class="chart-title">📝 ใบงาน</div><div id="workSummary"></div></div>
     </div>
   </div>
 
@@ -857,6 +1042,7 @@ td.wrap-sm { white-space: normal; min-width: 150px; max-width: 200px; font-size:
         <option>ปี 2565</option><option>ปี 2566</option>
       </select>
       <button class="btn btn-text" onclick="resetMapView()">รีเซ็ตแผนที่</button>
+      <button class="btn btn-ghost fs-btn" data-fs="mapView" onclick="toggleFS('mapView')" title="แสดงแผนที่เต็มจอ">⛶ <span class="fs-text">เต็มจอ</span></button>
       <span class="map-count-badge"><span id="mapCount">—</span> แห่งที่มีพิกัด</span>
     </div>
     <div class="map-frame">
@@ -868,11 +1054,42 @@ td.wrap-sm { white-space: normal; min-width: 150px; max-width: 200px; font-size:
       <span class="legend-item"><span class="legend-dot" style="background:var(--r-ne)"></span>ภาคอีสาน</span>
       <span class="legend-item"><span class="legend-dot" style="background:var(--r-south)"></span>ภาคใต้</span>
       <span class="legend-item"><span class="legend-dot" style="background:var(--r-none)"></span>ไม่ระบุภาค</span>
-      <span class="map-hint">คลิกจุดเพื่อดูรายละเอียดโรงเรียน</span>
+      <span class="map-hint">💡 คลิกจุดเพื่อดูรายละเอียด หรือเพิ่มลงรายการที่จะไป</span>
     </div>
   </div>
 
 </main>
+
+<!-- Trip list drawer -->
+<div class="modal-overlay" id="tripOverlay" onclick="if(event.target===this)closeTrip()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tripTitle">
+    <button class="modal-close" onclick="closeTrip()" aria-label="ปิด"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="modal-title" id="tripTitle">🧳 รายการโรงเรียนที่จะไป</div>
+    <div class="modal-sub" id="tripSub"></div>
+    <div class="trip-fields">
+      <label class="tf">ชื่อรายการ
+        <input id="tripName" class="field-input" placeholder="เช่น ลงพื้นที่ จ.น่าน ตุลาคม 2569" oninput="TRIP.title=this.value;saveTrip()">
+      </label>
+      <label class="tf">วันที่เดินทาง
+        <input id="tripDate" type="date" class="field-input" onchange="TRIP.date=this.value;saveTrip()">
+      </label>
+    </div>
+    <div class="trip-actions">
+      <button class="btn" onclick="exportTripPdf()">📄 ส่งออก PDF</button>
+      <button class="btn btn-ghost" onclick="openTripRoute()">🧭 เปิดเส้นทางใน Google Maps</button>
+      <button class="btn btn-text" onclick="clearTrip()">ล้างรายการ</button>
+    </div>
+    <div class="modal-section">🚩 ลำดับการเดินทาง</div>
+    <ol class="trip-list" id="tripList"></ol>
+  </div>
+</div>
+
+<!-- Floating trip tray -->
+<div class="trip-tray" id="tripTray" aria-live="polite">
+  <span class="tt-count">🧳 <b id="tripTrayCount">0</b> โรงเรียนในรายการ</span>
+  <button class="tt-btn" onclick="openTrip()">ดูรายการ</button>
+  <button class="tt-btn primary" onclick="exportTripPdf()">📄 ส่งออก PDF</button>
+</div>
 
 <!-- Detail drawer -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
@@ -881,11 +1098,15 @@ td.wrap-sm { white-space: normal; min-width: 150px; max-width: 200px; font-size:
     <div class="modal-title" id="m-name"></div>
     <div class="modal-sub" id="m-sub"></div>
     <div id="m-map-btns"></div>
-    <div class="modal-section">ข้อมูลทั่วไป</div>
+    <div class="modal-extra">
+      <button type="button" class="modal-map-btn trip-toggle" id="m-trip-btn" onclick="toggleTripRow(currentModalRow)"></button>
+      <button type="button" class="modal-map-btn secondary" onclick="exportPdf([currentModalRow])">📄 ส่งออก PDF</button>
+    </div>
+    <div class="modal-section">📋 ข้อมูลทั่วไป</div>
     <div class="modal-grid" id="m-info"></div>
-    <div class="modal-section">อุปกรณ์ที่ได้รับจัดสรร</div>
+    <div class="modal-section">📦 อุปกรณ์ที่ได้รับจัดสรร</div>
     <div class="equip-grid" id="m-equip"></div>
-    <div class="modal-section">ผู้บริหารและผู้ประสานงาน</div>
+    <div class="modal-section">👤 ผู้บริหารและผู้ประสานงาน</div>
     <div class="modal-grid" id="m-contact"></div>
   </div>
 </div>
@@ -1445,7 +1666,9 @@ function render() {
       ? `<button class="coord-btn" title="${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}" onclick="event.stopPropagation();openGoogleMaps('${lat}','${lng}','${escHtml(r['โรงเรียนเป้าหมาย']||'')}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>เปิดแผนที่</button>`
       : '<span class="dash">—</span>';
 
-    return `<tr onclick="openModal(${start+i})" title="คลิกเพื่อดูรายละเอียด ${escHtml(r['โรงเรียนเป้าหมาย']||'')}">
+    const sel = inTrip(r);
+    return `<tr class="${sel?'in-trip':''}" onclick="openModal(${start+i})" title="คลิกเพื่อดูรายละเอียด ${escHtml(r['โรงเรียนเป้าหมาย']||'')}">
+      <td class="check" onclick="event.stopPropagation()"><input type="checkbox" class="chk" ${sel?'checked':''} onchange="toggleTripRow(filtered[${start+i}], this.checked)" aria-label="เลือกโรงเรียนนี้"></td>
       <td class="muted num" style="text-align:left">${start+i+1}</td>
       <td class="soft num" style="text-align:left">${(r['รหัส รร.']!==undefined&&r['รหัส รร.']!==null&&r['รหัส รร.']!=='')?r['รหัส รร.']:'-'}</td>
       <td class="school-name">${r['โรงเรียนเป้าหมาย']||'-'}</td>
@@ -1464,6 +1687,7 @@ function render() {
     </tr>`;
   }).join('');
 
+  syncPageCheck();
   renderPagination();
 }
 
@@ -1539,8 +1763,11 @@ function openModalByRow(idx) {
   // idx here is an index into ALL_DATA (used by dashboard widgets like the closed-schools list)
   openModalRow(ALL_DATA[idx]);
 }
+let currentModalRow = null;
 function openModalRow(r) {
   if (!r) return;
+  currentModalRow = r;
+  updateModalTripBtn();
   document.getElementById('m-name').textContent = r['โรงเรียนเป้าหมาย']||'-';
   const sub = [
     r['รหัส รร.'] ? `<span>SMIS <b>${r['รหัส รร.']}</b></span>` : '',
@@ -1697,9 +1924,45 @@ document.addEventListener('click', function(e) {
   }
 });
 
-function makeIcon(color) {
+function makeIcon(color, selected) {
+  if (selected) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26">
+      <defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4361EE"/><stop offset="1" stop-color="#7B2FF7"/></linearGradient></defs>
+      <circle cx="13" cy="13" r="12" fill="url(#tg)" opacity=".25"/><circle cx="13" cy="13" r="8.5" fill="url(#tg)" stroke="white" stroke-width="2.5"/>
+      <path d="M9.5 13.2l2.4 2.3 4.6-4.8" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    return L.divIcon({ html: svg, className: '', iconSize: [26, 26], iconAnchor: [13, 13], popupAnchor: [0, -12] });
+  }
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
   return L.divIcon({ html: svg, className: '', iconSize: [16, 16], iconAnchor: [8, 8], popupAnchor: [0, -8] });
+}
+
+function popupHtml(r, idx) {
+  const lat = r['lat.'], lng = r['long.'];
+  const color = REGION_COLORS[r['ภูมิภาค']] || '#94a3b8';
+  const regionLabel = { 'ภาคกลาง':'กลาง','ภาคเหนือ':'เหนือ','ภาคตะวันออกเฉียงเหนือ':'อีสาน','ภาคใต้':'ใต้' }[r['ภูมิภาค']] || r['ภูมิภาค'] || '';
+  const sel = inTrip(r);
+  return `
+    <div class="popup-name">🏫 ${r['โรงเรียนเป้าหมาย']||'-'}</div>
+    <div class="popup-row">📍 อ.${r['อำเภอ']||'-'} จ.${r['จังหวัด']||'-'}</div>
+    <div class="popup-row">🎒 นักเรียน <b>${Number(r['จำนวนนักเรียน']||0).toLocaleString()}</b> คน, ครู <b>${r['จำนวนครู']||'-'}</b> คน</div>
+    <div class="popup-row">${r['สังกัด']||''}</div>
+    <div class="popup-tags">
+      <span class="popup-tag"><i style="background:${color}"></i>${regionLabel||'ไม่ระบุภาค'}</span>
+      <span class="popup-tag">${r['เป้าหมายมูลนิธิ ฯ']||''}</span>
+    </div>
+    <a class="popup-link" href="https://www.google.com/maps?q=${lat},${lng}&z=16" target="_blank" rel="noopener">เปิดใน Google Maps</a>
+    <div class="popup-actions">
+      <button class="popup-btn" onclick="openModalByRow(${idx})">ดูรายละเอียด</button>
+      <button class="popup-btn primary ${sel?'on':''}" onclick="toggleTripRow(ALL_DATA[${idx}])">${sel?'✓ อยู่ในรายการ':'＋ เพิ่มลงรายการ'}</button>
+    </div>`;
+}
+
+let tripMarkers = {};
+function updateTripMarker(r) {
+  const m = tripMarkers[schoolKey(r)];
+  if (!m) return;
+  m.setIcon(makeIcon(m._regionColor, inTrip(r)));
+  m.setPopupContent(popupHtml(r, m._rowIdx));
 }
 
 function initLeafletMap() {
@@ -1716,10 +1979,18 @@ function initLeafletMap() {
     delete mapEl._leaflet_id;
   }
   leafletMap = L.map('leafletMap', { center: [13.0, 101.5], zoom: 6, zoomControl: true });
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd', maxZoom: 19
-  }).addTo(leafletMap);
+  // แผนที่พื้นหลัง: ใช้ได้ฟรี ไม่ต้องมี API key
+  const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+  const baseLight = L.layerGroup([
+    L.tileLayer(esri + 'Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxNativeZoom: 16, maxZoom: 19, attribution: 'Tiles © Esri' }),
+    L.tileLayer(esri + 'Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxNativeZoom: 16, maxZoom: 19 })
+  ]);
+  const baseStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  });
+  const baseSat = L.tileLayer(esri + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagery © Esri' });
+  baseLight.addTo(leafletMap);
+  L.control.layers({ 'โทนอ่อน': baseLight, 'แผนที่ถนน (ชื่อไทย)': baseStreet, 'ภาพดาวเทียม': baseSat }, null, { position: 'topright' }).addTo(leafletMap);
   buildMapProvinceList('');
   refreshMapMarkers();
 }
@@ -1746,7 +2017,8 @@ function refreshMapMarkers() {
   });
 
   let count = 0;
-  ALL_DATA.forEach(r => {
+  tripMarkers = {};
+  ALL_DATA.forEach((r, rowIdx) => {
     const lat = parseFloat(r['lat.']), lng = parseFloat(r['long.']);
     if (!lat || !lng || isNaN(lat) || isNaN(lng)) return;
     if (regionF && r['ภูมิภาค'] !== regionF) return;
@@ -1760,19 +2032,10 @@ function refreshMapMarkers() {
     }
 
     const color = REGION_COLORS[r['ภูมิภาค']] || '#94a3b8';
-    const regionLabel = { 'ภาคกลาง':'กลาง','ภาคเหนือ':'เหนือ','ภาคตะวันออกเฉียงเหนือ':'อีสาน','ภาคใต้':'ใต้' }[r['ภูมิภาค']] || r['ภูมิภาค']||'';
-    const marker = L.marker([lat, lng], { icon: makeIcon(color) });
-    marker.bindPopup(`
-      <div class="popup-name">${r['โรงเรียนเป้าหมาย']||'-'}</div>
-      <div class="popup-row">อ.${r['อำเภอ']||'-'} จ.${r['จังหวัด']||'-'}</div>
-      <div class="popup-row">นักเรียน <b>${Number(r['จำนวนนักเรียน']||0).toLocaleString()}</b> คน, ครู <b>${r['จำนวนครู']||'-'}</b> คน</div>
-      <div class="popup-row">${r['สังกัด']||''}</div>
-      <div class="popup-tags">
-        <span class="popup-tag"><i style="background:${color}"></i>${regionLabel||'ไม่ระบุภาค'}</span>
-        <span class="popup-tag">${r['เป้าหมายมูลนิธิ ฯ']||''}</span>
-      </div>
-      <a class="popup-link" href="https://www.google.com/maps?q=${lat},${lng}&z=16" target="_blank" rel="noopener">เปิดใน Google Maps</a>
-    `, { maxWidth: 280 });
+    const marker = L.marker([lat, lng], { icon: makeIcon(color, inTrip(r)), zIndexOffset: inTrip(r) ? 1000 : 0 });
+    marker._regionColor = color; marker._rowIdx = rowIdx;
+    marker.bindPopup(popupHtml(r, rowIdx), { maxWidth: 290, minWidth: 250 });
+    tripMarkers[schoolKey(r)] = marker;
     markerLayer.addLayer(marker);
     count++;
   });
@@ -1809,6 +2072,15 @@ function renderDashboard() {
     Chart.defaults.plugins.tooltip.padding = 10;
     Chart.defaults.plugins.tooltip.cornerRadius = 6;
     Chart.defaults.plugins.tooltip.displayColors = false;
+  }
+  const gradFill = (horizontal) => (c) => {
+    const ch = c.chart, a = ch.chartArea;
+    if (!a) return '#4361EE';
+    const g = horizontal ? ch.ctx.createLinearGradient(a.left, 0, a.right, 0) : ch.ctx.createLinearGradient(0, a.bottom, 0, a.top);
+    g.addColorStop(0, '#4361EE'); g.addColorStop(1, '#7B2FF7');
+    return g;
+  };
+  {
   }
   const d = filtered.length ? filtered : ALL_DATA;
 
@@ -1896,7 +2168,7 @@ function renderDashboard() {
     { id:'chartYear', type:'bar',
       labels:['ปี 2562','ปี 2563','ปี 2564','ปี 2565','ปี 2566'],
       counts:['ปี 2562','ปี 2563','ปี 2564','ปี 2565','ปี 2566'].map(y=>d.filter(r=>r['เป้าหมายมูลนิธิ ฯ']===y).length),
-      colors:['#C9D3DF','#A3B4C8','#7890AC','#4E6B8E','#1F3A5A']
+      colors:['#C7D2FE','#A5B4FC','#818CF8','#6366F1','#7B2FF7']
     },
     { id:'chartSize', type:'doughnut',
       labels:['ขนาดเล็ก','ขนาดกลาง','ขนาดใหญ่','ขยายโอกาส'],
@@ -1906,7 +2178,7 @@ function renderDashboard() {
         d.filter(r=>(r['ประเภท']||'').includes('ขนาดใหญ่')&&!(r['ประเภท']||'').includes('ขยาย')).length,
         d.filter(r=>(r['ประเภท']||'').includes('ขยายโอกาส')).length,
       ],
-      colors:['#1F3A5A','#7890AC','#B9853F','#C9D3DF']
+      colors:['#4361EE','#7B2FF7','#B9853F','#C7D2FE']
     },
   ];
 
@@ -1937,7 +2209,7 @@ function renderDashboard() {
     if (dashCharts.chartProvince) dashCharts.chartProvince.destroy();
     dashCharts.chartProvince = new Chart(ctxP, {
       type:'bar',
-      data: { labels: top10.map(x=>x[0]), datasets:[{ data:top10.map(x=>x[1]), backgroundColor:'#1F3A5A', borderRadius:4, barThickness:14, borderWidth:0 }] },
+      data: { labels: top10.map(x=>x[0]), datasets:[{ data:top10.map(x=>x[1]), backgroundColor:gradFill(true), borderRadius:4, barThickness:14, borderWidth:0 }] },
       options:{
         indexAxis:'y', responsive:true, maintainAspectRatio:true,
         plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=>` ${c.raw.toLocaleString()} แห่ง` }, titleFont:{family:"'IBM Plex Sans Thai', sans-serif"}, bodyFont:{family:"'IBM Plex Sans Thai', sans-serif"} } },
@@ -1968,7 +2240,7 @@ function renderDashboard() {
     if (dashCharts.chartEquip) dashCharts.chartEquip.destroy();
     dashCharts.chartEquip = new Chart(ctxE,{
       type:'bar',
-      data:{labels:equipFields,datasets:[{data:equipCounts,backgroundColor:'#1F3A5A',borderRadius:4,maxBarThickness:28,borderWidth:0}]},
+      data:{labels:equipFields,datasets:[{data:equipCounts,backgroundColor:gradFill(false),borderRadius:4,maxBarThickness:28,borderWidth:0}]},
       options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toLocaleString()} เครื่อง`},titleFont:{family:"'IBM Plex Sans Thai', sans-serif"},bodyFont:{family:"'IBM Plex Sans Thai', sans-serif"}}},scales:{y:{beginAtZero:true,grid:{color:'#EEF0F2'},ticks:{font:{family:"'IBM Plex Sans Thai', sans-serif",size:10}}},x:{ticks:{font:{family:"'IBM Plex Sans Thai', sans-serif",size:10}}}}}
     });
   }
@@ -1999,7 +2271,7 @@ function renderDashboard() {
   const maxW=sorted[0]?sorted[0][1]:1;
   document.getElementById('workSummary').innerHTML=sorted.map(([k,v])=>`
     <div class="work-row">
-      <div class="work-head"><span>${k==='(ว่าง)'||k==='-'?'ยังไม่มีใบงาน':k}</span><span>${v.toLocaleString()}</span></div>
+      <div class="work-head"><span>${k==='(ว่าง)'||k==='-'?'⏳ ยังไม่มีใบงาน':'✅ '+k}</span><span>${v.toLocaleString()}</span></div>
       <div class="work-track"><div class="work-fill" style="width:${Math.round(v/maxW*100)}%"></div></div>
     </div>
   `).join('');
@@ -2025,6 +2297,7 @@ let leafletMap = null, markerLayer = null;
 let dashCharts = {};
 
 function switchTab(tab) {
+  exitFS();
   ['table','dashboard','map'].forEach(t => {
     document.getElementById('tab-' + t).classList.toggle('active', t === tab);
   });
@@ -2099,12 +2372,390 @@ document.addEventListener('click', e => {
   const w = document.getElementById('exportWrap');
   if (w && !w.contains(e.target)) closeExportMenu();
 });
+// ─── TRIP LIST (รายการโรงเรียนที่จะไป) ─────────────────────
+// เก็บในเบราว์เซอร์ (localStorage) เพื่อให้รายการยังอยู่แม้รีเฟรชหน้า
+const TRIP_STORE = 'dlf-trip-list-v1';
+let TRIP = { title: '', date: '', keys: [] };
+try {
+  const saved = JSON.parse(localStorage.getItem(TRIP_STORE) || 'null');
+  if (saved && Array.isArray(saved.keys)) TRIP = Object.assign(TRIP, saved);
+} catch (e) {}
+function saveTrip() { try { localStorage.setItem(TRIP_STORE, JSON.stringify(TRIP)); } catch (e) {} }
+
+function schoolKey(r) {
+  if (!r) return '';
+  const c = r['รหัส รร.'];
+  if (c !== undefined && c !== null && String(c).trim() !== '' && c !== '-') return 'c:' + String(c).trim();
+  return 'n:' + (r['โรงเรียนเป้าหมาย'] || '') + '|' + (r['จังหวัด'] || '');
+}
+function inTrip(r) { return !!r && TRIP.keys.includes(schoolKey(r)); }
+function findByKey(k) { return ALL_DATA.find(r => schoolKey(r) === k); }
+function tripRows() { return TRIP.keys.map(findByKey).filter(Boolean); }
+
+function toggleTripRow(r, force) {
+  if (!r) return;
+  const k = schoolKey(r), i = TRIP.keys.indexOf(k);
+  const want = typeof force === 'boolean' ? force : i === -1;
+  if (want && i === -1) TRIP.keys.push(k);
+  else if (!want && i !== -1) TRIP.keys.splice(i, 1);
+  saveTrip();
+  onTripChanged(r, want);
+}
+function setTripMany(rows, on) {
+  rows.forEach(r => {
+    const k = schoolKey(r), i = TRIP.keys.indexOf(k);
+    if (on && i === -1) TRIP.keys.push(k);
+    if (!on && i !== -1) TRIP.keys.splice(i, 1);
+  });
+  saveTrip();
+  onTripChanged(null, on);
+}
+function togglePageTrip(on) {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  setTripMany(filtered.slice(start, start + PAGE_SIZE), on);
+}
+function syncPageCheck() {
+  const pc = document.getElementById('pageCheck');
+  if (!pc) return;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page = filtered.slice(start, start + PAGE_SIZE);
+  const n = page.filter(inTrip).length;
+  pc.checked = page.length > 0 && n === page.length;
+  pc.indeterminate = n > 0 && n < page.length;
+}
+
+function onTripChanged(r, bump) {
+  updateTripUI(bump);
+  render();
+  if (r) updateTripMarker(r);
+  else if (leafletMap) refreshMapMarkers();
+  updateModalTripBtn();
+  if (document.getElementById('tripOverlay').classList.contains('open')) renderTripList();
+}
+function updateTripUI(bump) {
+  const n = TRIP.keys.length;
+  document.getElementById('tripCount').textContent = n ? n : '';
+  document.getElementById('tripTrayCount').textContent = n.toLocaleString();
+  document.getElementById('tripTray').classList.toggle('show', n > 0);
+  if (bump) ['tripTray', 'tripOpenBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  });
+}
+function updateModalTripBtn() {
+  const btn = document.getElementById('m-trip-btn');
+  if (!btn || !currentModalRow) return;
+  const sel = inTrip(currentModalRow);
+  btn.textContent = sel ? '✓ อยู่ในรายการที่จะไป' : '＋ เพิ่มลงรายการที่จะไป';
+  btn.title = sel ? 'คลิกเพื่อนำออกจากรายการ' : '';
+  btn.classList.toggle('on', sel);
+}
+
+function openTrip() {
+  renderTripList();
+  const o = document.getElementById('tripOverlay');
+  o.classList.add('open');
+  o.querySelector('.modal').scrollTop = 0;
+}
+function closeTrip() { document.getElementById('tripOverlay').classList.remove('open'); }
+
+function renderTripList() {
+  if (ALL_DATA.length) {
+    const before = TRIP.keys.length;
+    TRIP.keys = TRIP.keys.filter(k => findByKey(k));
+    if (TRIP.keys.length !== before) { saveTrip(); updateTripUI(); }
+  }
+  const rows = tripRows();
+  document.getElementById('tripName').value = TRIP.title || '';
+  document.getElementById('tripDate').value = TRIP.date || '';
+  const students = rows.reduce((a, r) => a + (Number(r['จำนวนนักเรียน']) || 0), 0);
+  const withCoord = rows.filter(hasCoordRow).length;
+  document.getElementById('tripSub').innerHTML = rows.length
+    ? `<span><b>${rows.length}</b> โรงเรียน</span><span>นักเรียนรวม <b>${students.toLocaleString()}</b> คน</span><span>มีพิกัด <b>${withCoord}</b> แห่ง</span>`
+    : '';
+  const list = document.getElementById('tripList');
+  if (!rows.length) {
+    list.innerHTML = `<li class="trip-empty"><b>🧭</b>ยังไม่มีโรงเรียนในรายการ<br>ติ๊กช่องหน้าชื่อโรงเรียนในตาราง หรือกด “เพิ่มลงรายการ” จากจุดบนแผนที่</li>`;
+    return;
+  }
+  list.innerHTML = rows.map((r, i) => `
+    <li class="trip-item" style="animation-delay:${Math.min(i, 12) * 0.02}s">
+      <span class="trip-num">${i + 1}</span>
+      <div class="trip-body" onclick="openModalRow(tripRows()[${i}])" title="ดูรายละเอียด">
+        <div class="trip-name">${r['โรงเรียนเป้าหมาย'] || '-'}</div>
+        <div class="trip-meta">อ.${r['อำเภอ'] || '-'} จ.${r['จังหวัด'] || '-'}${hasCoordRow(r) ? '' : ', ยังไม่มีพิกัด'}</div>
+      </div>
+      <div class="trip-acts">
+        <button class="icon-btn" onclick="moveTrip(${i},-1)" ${i === 0 ? 'disabled' : ''} aria-label="เลื่อนขึ้น">↑</button>
+        <button class="icon-btn" onclick="moveTrip(${i},1)" ${i === rows.length - 1 ? 'disabled' : ''} aria-label="เลื่อนลง">↓</button>
+        <button class="icon-btn del" onclick="toggleTripRow(tripRows()[${i}], false)" aria-label="นำออกจากรายการ">✕</button>
+      </div>
+    </li>`).join('');
+}
+function moveTrip(i, d) {
+  const keys = tripRows().map(schoolKey), j = i + d;
+  if (j < 0 || j >= keys.length) return;
+  [keys[i], keys[j]] = [keys[j], keys[i]];
+  TRIP.keys = keys; saveTrip(); renderTripList();
+}
+function clearTrip() {
+  if (!TRIP.keys.length) return;
+  if (!confirm('ล้างโรงเรียนทั้งหมดออกจากรายการที่จะไป?')) return;
+  TRIP.keys = []; saveTrip(); onTripChanged(null); renderTripList();
+}
+
+function hasCoordRow(r) {
+  const lat = parseFloat(r['lat.']), lng = parseFloat(r['long.']);
+  return !!lat && !!lng && !isNaN(lat) && !isNaN(lng);
+}
+function routeUrl(rows) {
+  const pts = rows.filter(hasCoordRow).slice(0, 10).map(r => `${parseFloat(r['lat.'])},${parseFloat(r['long.'])}`);
+  if (!pts.length) return '';
+  const dest = pts[pts.length - 1], mid = pts.slice(0, -1);
+  return 'https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=' + encodeURIComponent(dest) +
+    (mid.length ? '&waypoints=' + encodeURIComponent(mid.join('|')) : '');
+}
+function openTripRoute() {
+  const rows = tripRows();
+  const pts = rows.filter(hasCoordRow);
+  if (!pts.length) { alert('โรงเรียนในรายการยังไม่มีพิกัด จึงเปิดเส้นทางไม่ได้'); return; }
+  if (pts.length > 10) alert('Google Maps รับได้สูงสุด 10 จุดต่อเส้นทาง ระบบจะเปิดเส้นทางของ 10 โรงเรียนแรกที่มีพิกัด');
+  window.open(routeUrl(rows), '_blank', 'noopener');
+}
+
+// ─── PDF EXPORT ─────────────────────────────────────────────
+// สร้างเอกสาร A4 ในแท็บใหม่ แล้วเปิดหน้าต่างพิมพ์ให้เลือก “บันทึกเป็น PDF”
+// (วิธีนี้แสดงภาษาไทยได้ถูกต้อง 100% โดยไม่ต้องฝังฟอนต์)
+const PDF_EQUIP = ['จาน+LNB','Android','TV 55"','IRD','Notebook','L2 Switch','16Port','8Port','Router','Printer','หมึก','LAN','AC','Digital Life','TV 49"','ทดแทน DGB 2565'];
+function escT(v) {
+  return String(v === undefined || v === null || v === '' ? '-' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function thaiDate(d) { return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }); }
+
+function exportTripPdf() {
+  const rows = tripRows();
+  if (!rows.length) { alert('ยังไม่มีโรงเรียนในรายการ ติ๊กเลือกโรงเรียนจากตารางหรือแผนที่ก่อน'); return; }
+  exportPdf(rows, { title: TRIP.title, date: TRIP.date, cover: true });
+}
+
+function exportPdf(rows, opt) {
+  rows = (rows || []).filter(Boolean);
+  if (!rows.length) return;
+  opt = opt || {};
+  const cover = !!opt.cover;
+  const today = new Date();
+  const title = opt.title || (cover ? 'รายการโรงเรียนที่จะไป' : rows[0]['โรงเรียนเป้าหมาย']);
+  const travelDate = opt.date ? thaiDate(new Date(opt.date + 'T00:00:00')) : '';
+  const fileTitle = ((cover ? 'รายการเยี่ยมโรงเรียน ' + (opt.title || '') : 'ข้อมูลโรงเรียน ' + (rows[0]['โรงเรียนเป้าหมาย'] || ''))
+    .replace(/[\\/:*?"<>|]+/g, ' ').trim() + ' ' + today.toISOString().slice(0, 10)).replace(/\s+/g, '_');
+
+  const kv = (pairs) => {
+    let h = '';
+    for (let i = 0; i < pairs.length; i += 2) {
+      const a = pairs[i], b = pairs[i + 1];
+      h += `<tr><td class="k">${a[0]}</td><td class="v">${a[1]}</td>` +
+           (b ? `<td class="k">${b[0]}</td><td class="v">${b[1]}</td>` : '<td></td><td></td>') + '</tr>';
+    }
+    return `<table class="kv">${h}</table>`;
+  };
+
+  const schoolPage = (r, i) => {
+    const meta = getStatusMeta(r['Status']);
+    const statusColor = { normal: '#3E7A5E', declined: '#A77B2C', closed: '#B0413E' }[meta.cls] || '#4B5563';
+    const status = `<span class="status" style="color:${statusColor}"><i class="dot" style="background:${statusColor}"></i>${escT(meta.text)}${meta.date ? ' (' + escT(meta.date) + ')' : ''}</span>`;
+    const coord = hasCoordRow(r)
+      ? `<a href="https://www.google.com/maps?q=${parseFloat(r['lat.'])},${parseFloat(r['long.'])}&z=16">📍 ${parseFloat(r['lat.']).toFixed(5)}, ${parseFloat(r['long.']).toFixed(5)}</a>`
+      : '<span>📍 ยังไม่มีพิกัด</span>';
+    const info = [
+      ['จังหวัด', escT(r['จังหวัด'])], ['อำเภอ', escT(r['อำเภอ'])],
+      ['ตำบล', escT(r['ตำบล'])], ['ภูมิภาค', escT(r['ภูมิภาค'])],
+      ['สังกัด', escT(r['สังกัด'])], ['หน่วยงาน', escT(r['หน่วยงาน'])],
+      ['ปีเป้าหมาย', escT(r['เป้าหมายมูลนิธิ ฯ'])], ['ประเภท', escT(r['ประเภท'])],
+      ['จำนวนนักเรียน', escT(r['จำนวนนักเรียน']) + ' คน'], ['จำนวนครู', escT(r['จำนวนครู']) + ' คน'],
+      ['ครูครบชั้น', escT(r['ครูครบชั้น/ไม่ครบ'])], ['สถานะ', status],
+      ['ใบงาน', escT(r['ใบงาน'])], ['ทดแทน DGB 2565', escT(r['ทดแทน DGB 2565'])],
+    ];
+    let eq = '';
+    for (let k = 0; k < PDF_EQUIP.length; k += 4) {
+      eq += '<tr>' + PDF_EQUIP.slice(k, k + 4).map(f => {
+        const v = r[f]; const z = !v || v === '0' || v === 0;
+        return `<td><div class="en">${escT(f)}</div><div class="ev ${z ? 'z' : ''}">${z ? '0' : escT(v)}</div></td>`;
+      }).join('') + '</tr>';
+    }
+    const contact = [
+      ['ผู้บริหาร', escT(r['ผู้บริหาร'])], ['ตำแหน่ง', escT(r['ตำแหน่ง'])],
+      ['เบอร์โทร', escT(r['เบอร์'])], ['ผู้ประสานงาน', escT(r['ผู้ระสานงาน'])],
+      ['ตำแหน่ง', escT(r['ตำแหน่ง2'])], ['เบอร์โทร', escT(r['เบอร์3'])],
+    ];
+    return `<section class="sheet">
+      <div class="bar"></div>
+      <div class="kicker">${cover ? `โรงเรียนที่ ${i + 1} จาก ${rows.length}` : 'ระบบข้อมูลโรงเรียนเป้าหมายมูลนิธิ'}</div>
+      <h1>${escT(r['โรงเรียนเป้าหมาย'])}</h1>
+      <div class="meta"><span>SMIS <b>${escT(r['รหัส รร.'])}</b></span><span>อ.${escT(r['อำเภอ'])} จ.${escT(r['จังหวัด'])}</span>${coord}</div>
+      <h2>📋 ข้อมูลทั่วไป</h2>${kv(info)}
+      <h2>📦 อุปกรณ์ที่ได้รับจัดสรร</h2><table class="eq">${eq}</table>
+      <h2>👤 ผู้บริหารและผู้ประสานงาน</h2>${kv([[contact[0][0], contact[0][1]], [contact[1][0], contact[1][1]], [contact[2][0], contact[2][1]], ['', ''], [contact[3][0], contact[3][1]], [contact[4][0], contact[4][1]], [contact[5][0], contact[5][1]], ['', '']])}
+      <div class="notes"><div class="nt">📝 บันทึกการเยี่ยม</div><div class="lines"></div></div>
+      <div class="foot"><span>ระบบข้อมูลโรงเรียนเป้าหมายมูลนิธิ</span><span>พิมพ์เมื่อ ${thaiDate(today)}</span></div>
+    </section>`;
+  };
+
+  let coverHtml = '';
+  if (cover) {
+    const students = rows.reduce((a, r) => a + (Number(r['จำนวนนักเรียน']) || 0), 0);
+    const teachers = rows.reduce((a, r) => a + (Number(r['จำนวนครู']) || 0), 0);
+    const route = routeUrl(rows);
+    coverHtml = `<section class="sheet">
+      <div class="bar"></div>
+      <div class="kicker">ระบบข้อมูลโรงเรียนเป้าหมายมูลนิธิ</div>
+      <h1>🧳 ${escT(title)}</h1>
+      <div class="meta">${travelDate ? `<span>🗓️ วันที่เดินทาง <b>${travelDate}</b></span>` : ''}<span>พิมพ์เมื่อ ${thaiDate(today)}</span></div>
+      <div class="summary">
+        <div><b>${rows.length}</b><span>โรงเรียน</span></div>
+        <div><b>${students.toLocaleString()}</b><span>นักเรียนรวม (คน)</span></div>
+        <div><b>${teachers.toLocaleString()}</b><span>ครูรวม (คน)</span></div>
+        <div><b>${rows.filter(hasCoordRow).length}</b><span>มีพิกัด (แห่ง)</span></div>
+      </div>
+      <h2>🚩 ลำดับการเดินทาง</h2>
+      <table class="list">
+        <thead><tr><th class="n">ลำดับ</th><th>โรงเรียน</th><th>สังกัด</th><th class="r">นักเรียน / ครู</th><th>ผู้ติดต่อ</th></tr></thead>
+        <tbody>${rows.map((r, i) => {
+          const who = r['ผู้ระสานงาน'] && r['ผู้ระสานงาน'] !== '-' ? [r['ผู้ระสานงาน'], r['เบอร์3']] : [r['ผู้บริหาร'], r['เบอร์']];
+          return `<tr><td class="n"><span class="no">${i + 1}</span></td>
+            <td><b>${escT(r['โรงเรียนเป้าหมาย'])}</b><div class="sm">อ.${escT(r['อำเภอ'])} จ.${escT(r['จังหวัด'])}</div></td>
+            <td class="sm2">${escT(r['สังกัด'])}</td>
+            <td class="r">${escT(r['จำนวนนักเรียน'])} / ${escT(r['จำนวนครู'])}</td>
+            <td>${escT(who[0])}<div class="sm">${escT(who[1])}</div></td></tr>`;
+        }).join('')}</tbody>
+      </table>
+      ${route ? `<p class="route">🧭 เส้นทางใน Google Maps: <a href="${route}">เปิดเส้นทาง${rows.filter(hasCoordRow).length > 10 ? ' (10 จุดแรก)' : ''}</a></p>` : ''}
+      <div class="foot"><span>รายละเอียดแต่ละโรงเรียนอยู่ในหน้าถัดไป</span><span>${rows.length + 1} หน้า</span></div>
+    </section>`;
+  }
+
+  const css = `
+    @page { size: A4; margin: 12mm 13mm 14mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'IBM Plex Sans Thai', system-ui, sans-serif; color: #17212E; font-size: 10.5pt; line-height: 1.55;
+           background: #EEF0F3; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .toolbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+               background: #17212E; color: #fff; font-size: 13.5px; }
+    .toolbar span { flex: 1; opacity: .8; }
+    .toolbar button { height: 38px; padding: 0 18px; border-radius: 999px; border: none; cursor: pointer; color: #fff;
+               font: 500 14px 'IBM Plex Sans Thai', sans-serif; background: linear-gradient(135deg,#4361EE,#7B2FF7); }
+    .sheet { background: #fff; width: 210mm; min-height: 297mm; margin: 20px auto; padding: 13mm; box-shadow: 0 10px 30px -12px rgba(23,33,46,.25); }
+    .bar { height: 5px; border-radius: 3px; background: linear-gradient(90deg,#4361EE,#7B2FF7); margin-bottom: 14px; }
+    .kicker { font-size: 9pt; color: #8B929C; }
+    h1 { font-size: 20pt; font-weight: 600; line-height: 1.3; margin: 2px 0 6px; }
+    h2 { font-size: 11pt; font-weight: 600; margin: 16px 0 4px; padding-bottom: 4px; border-bottom: 2px solid #4361EE; }
+    .meta { display: flex; flex-wrap: wrap; gap: 3px 18px; font-size: 9.5pt; color: #4B5563; }
+    .meta b { font-weight: 600; color: #17212E; }
+    a { color: #4361EE; text-decoration: none; }
+    table { width: 100%; border-collapse: collapse; }
+    table.kv td { padding: 5px 8px 5px 0; border-bottom: 1px solid #E6E8EB; vertical-align: top; font-size: 9.5pt; }
+    table.kv td.k { color: #8B929C; width: 17%; white-space: nowrap; }
+    table.kv td.v { width: 33%; padding-right: 14px; }
+    table.eq { margin-top: 6px; }
+    table.eq td { border: 1px solid #E6E8EB; padding: 5px 9px; width: 25%; }
+    .en { font-size: 8.5pt; color: #8B929C; }
+    .ev { font-size: 13pt; font-weight: 600; line-height: 1.3; }
+    .ev.z { color: #CDD1D6; }
+    .status { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+    .notes { margin-top: 16px; border: 1px solid #D4D8DD; border-radius: 8px; padding: 8px 12px 10px; break-inside: avoid; }
+    .nt { font-size: 9.5pt; font-weight: 600; }
+    .lines { height: 30mm; background: repeating-linear-gradient(to bottom, transparent 0, transparent 7.2mm, #E6E8EB 7.2mm, #E6E8EB 7.5mm); }
+    .summary { display: grid; grid-template-columns: repeat(4, 1fr); margin: 16px 0 4px; border: 1px solid #E6E8EB; border-radius: 8px; overflow: hidden; }
+    .summary div { padding: 10px 14px; border-left: 1px solid #E6E8EB; }
+    .summary div:first-child { border-left: none; }
+    .summary b { display: block; font-size: 17pt; font-weight: 600; line-height: 1.3; }
+    .summary span { font-size: 8.5pt; color: #8B929C; }
+    table.list { font-size: 9.5pt; margin-top: 4px; }
+    table.list th { text-align: left; font-weight: 500; font-size: 8.5pt; color: #8B929C; padding: 6px 8px 6px 0; border-bottom: 1px solid #D4D8DD; }
+    table.list td { padding: 7px 8px 7px 0; border-bottom: 1px solid #E6E8EB; vertical-align: top; }
+    table.list tr { break-inside: avoid; }
+    table.list .r { text-align: right; white-space: nowrap; }
+    table.list .n { width: 40px; }
+    .no { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; align-items: center; justify-content: center;
+          background: linear-gradient(135deg,#4361EE,#7B2FF7); color: #fff; font-size: 8.5pt; font-weight: 600; }
+    .sm { font-size: 8.5pt; color: #8B929C; }
+    .sm2 { font-size: 8.5pt; color: #4B5563; max-width: 45mm; }
+    .route { margin-top: 12px; font-size: 9.5pt; }
+    .foot { margin-top: 14px; display: flex; justify-content: space-between; font-size: 8pt; color: #8B929C; }
+    @media print {
+      body { background: #fff; }
+      .toolbar { display: none; }
+      .sheet { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+      .sheet + .sheet { break-before: page; }
+    }`;
+
+  const SC = 'script';
+  const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${escT(fileTitle)}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>${css}</style></head><body>
+    <div class="toolbar"><span>📄 เอกสาร ${rows.length + (cover ? 1 : 0)} หน้า ในหน้าต่างพิมพ์ให้เลือกปลายทางเป็น “บันทึกเป็น PDF” (Save as PDF)</span>
+      <button onclick="window.print()">🖨️ บันทึกเป็น PDF</button></div>
+    ${coverHtml}${rows.map(schoolPage).join('')}
+    <${SC}>
+      window.addEventListener('load', function () {
+        var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+        ready.then(function () { setTimeout(function () { window.print(); }, 350); });
+      });
+    </${SC}></body></html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) { alert('เบราว์เซอร์บล็อกหน้าต่างใหม่ กรุณาอนุญาตป๊อปอัปสำหรับหน้านี้แล้วลองอีกครั้ง'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
+// ─── FULL SCREEN (ตาราง / แผนที่) ──────────────────────────
+function toggleFS(id) {
+  const el = document.getElementById(id);
+  const on = !el.classList.contains('fs');
+  document.querySelectorAll('.fs').forEach(x => x.classList.remove('fs'));
+  el.classList.toggle('fs', on);
+  document.body.classList.toggle('fs-lock', on);
+  updateFsButtons();
+  try {
+    if (on && !document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  } catch (e) {}
+  if (leafletMap) setTimeout(() => leafletMap.invalidateSize(true), 250);
+}
+function exitFS() {
+  const el = document.querySelector('.fs');
+  if (!el) return;
+  el.classList.remove('fs');
+  document.body.classList.remove('fs-lock');
+  updateFsButtons();
+  try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
+  if (leafletMap) setTimeout(() => leafletMap.invalidateSize(true), 250);
+}
+function updateFsButtons() {
+  document.querySelectorAll('.fs-btn').forEach(b => {
+    const on = document.getElementById(b.dataset.fs).classList.contains('fs');
+    b.classList.toggle('on', on);
+    b.innerHTML = on ? '✕ <span class="fs-text">ออกจากเต็มจอ</span>' : '⛶ <span class="fs-text">เต็มจอ</span>';
+  });
+}
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) exitFS(); });
+
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  document.getElementById('modalOverlay').classList.remove('open');
   closeExportMenu();
   document.querySelectorAll('.ms-panel.open,.ms-btn.open').forEach(x => x.classList.remove('open'));
+  const m = document.getElementById('modalOverlay');
+  if (m.classList.contains('open')) { m.classList.remove('open'); return; }
+  const t = document.getElementById('tripOverlay');
+  if (t.classList.contains('open')) { closeTrip(); return; }
+  exitFS();
 });
+updateTripUI();
+
 if (window.innerWidth > 900) toggleFilters(true);
 
 // ─── INIT ────────────────────────────────────────────────
