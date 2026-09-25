@@ -1312,6 +1312,9 @@ body:has(.trip-tray.show) #listPanel.fs, body:has(.trip-tray.show) #mapView.fs {
       <div class="vf-block"><div class="vf-label">อัตราครู</div>
         <div class="opts "><label class="opt"><input type="radio" name="อัตราครู" value="ครูครบชั้น"><span>👩‍🏫 ครูครบชั้น</span></label><label class="opt"><input type="radio" name="อัตราครู" value="ครูไม่ครบชั้น"><span>⚠️ ครูไม่ครบชั้น</span></label></div>
       </div>
+      <div class="vf-block"><div class="vf-label">การสอนตรงสาขาวิชาเอก</div>
+        <div class="opts "><label class="opt"><input type="radio" name="การสอนตรงวิชาเอก" value="ครูสอนตรงสาขาวิชาเอก"><span>🎓 ครูสอนตรงสาขาวิชาเอก</span></label><label class="opt"><input type="radio" name="การสอนตรงวิชาเอก" value="ครูสอนไม่ตรงสาขาวิชาเอก"><span>🔀 ครูสอนไม่ตรงสาขาวิชาเอก</span></label></div>
+      </div>
       <div class="vf-block"><div class="vf-label">การเรียนรวม</div>
         <div class="opts "><label class="opt"><input type="radio" name="การเรียนรวม" value="มีจัดควบเรียนรวม"><span>🔗 มีจัดควบเรียนรวม</span></label><label class="opt"><input type="radio" name="การเรียนรวม" value="จัดห้องเรียนตามปกติ"><span>🏫 จัดห้องเรียนตามปกติ</span></label></div>
       </div>
@@ -1321,6 +1324,9 @@ body:has(.trip-tray.show) #listPanel.fs, body:has(.trip-tray.show) #mapView.fs {
         <div class="opts "><label class="opt"><input type="radio" name="การใช้งาน DLTV" value="ใช้ทุกวัน"><span>ใช้ทุกวัน</span></label><label class="opt"><input type="radio" name="การใช้งาน DLTV" value="ใช้บางวัน"><span>ใช้บางวัน</span></label><label class="opt"><input type="radio" name="การใช้งาน DLTV" value="ไม่ได้ใช้"><span>ไม่ได้ใช้</span></label></div>
       </div>
       <div class="dltv-detail" id="dltvDetail">
+        <div class="vf-block"><div class="vf-label">ลักษณะการใช้ (เลือกได้หลายข้อ)</div>
+          <div class="opts "><label class="opt"><input type="checkbox" name="ลักษณะการใช้ DLTV" value="ชมสดผ่านจานดาวเทียม"><span>📡 ชมสดผ่านจานดาวเทียม</span></label><label class="opt"><input type="checkbox" name="ลักษณะการใช้ DLTV" value="Video on Demand"><span>▶️ Video on Demand</span></label></div>
+        </div>
         <div class="vf-block"><div class="vf-label">ระดับชั้นที่ใช้</div>
           <div class="opts "><label class="opt"><input type="radio" name="ระดับชั้นที่ใช้ DLTV" value="ใช้ทุกระดับชั้น"><span>ใช้ทุกระดับชั้น</span></label><label class="opt"><input type="radio" name="ระดับชั้นที่ใช้ DLTV" value="ใช้บางชั้นเรียน"><span>ใช้บางชั้นเรียน</span></label></div>
         </div>
@@ -2908,10 +2914,11 @@ function exportPdf(rows, opt) {
       ${kv([['ชื่อ-สกุล', val(v['ผู้ให้ข้อมูล'])], ['ตำแหน่ง', val(v['ตำแหน่งผู้ให้ข้อมูล'])], ['เบอร์โทร', val(v['เบอร์ผู้ให้ข้อมูล'])], ['รายการเดินทาง', val(v['ชื่อรายการเดินทาง'])]])}
       <h2>🏫 ข้อมูล ณ วันเยี่ยม</h2>
       ${kv([['จำนวนนักเรียน', v['นักเรียน ณ วันเยี่ยม'] ? escT(v['นักเรียน ณ วันเยี่ยม']) + ' คน' : '-'], ['จำนวนครู', v['ครู ณ วันเยี่ยม'] ? escT(v['ครู ณ วันเยี่ยม']) + ' คน' : '-'],
-            ['อัตราครู', val(v['อัตราครู'])], ['การเรียนรวม', val(v['การเรียนรวม'])]])}
+            ['อัตราครู', val(v['อัตราครู'])], ['การสอนตรงวิชาเอก', val(v['การสอนตรงวิชาเอก'])],
+            ['การเรียนรวม', val(v['การเรียนรวม'])], ['', '']])}
       <h2>📺 การใช้ DLTV</h2>
       ${kv([['ความถี่ในการใช้', val(v['การใช้งาน DLTV'])], ['ระดับชั้นที่ใช้', val(v['ระดับชั้นที่ใช้ DLTV'])],
-            ['รูปแบบการใช้', val(v['รูปแบบการใช้ DLTV'])], ['', '']])}
+            ['ลักษณะการใช้', val(v['ลักษณะการใช้ DLTV'])], ['รูปแบบการใช้', val(v['รูปแบบการใช้ DLTV'])]])}
       <h2>🔧 อุปกรณ์</h2>
       ${kv([['สภาพอุปกรณ์', val(v['สภาพอุปกรณ์'])], ['อุปกรณ์ที่มีปัญหา', val(v['อุปกรณ์ที่มีปัญหา'])]])}
       <h2>📝 ปัญหาและข้อเสนอแนะ</h2>
@@ -3304,10 +3311,10 @@ function openVisitForm(r, editRec) {
   if (editRec) {
     ['วันที่เยี่ยม', 'ผู้เยี่ยม', 'ผู้ให้ข้อมูล', 'ตำแหน่งผู้ให้ข้อมูล', 'เบอร์ผู้ให้ข้อมูล', 'นักเรียน ณ วันเยี่ยม', 'ครู ณ วันเยี่ยม',
      'ปัญหาที่พบ', 'ข้อเสนอแนะ / สิ่งที่ต้องติดตาม'].forEach(n => set(n, editRec[n]));
-    ['ผลการเยี่ยม', 'อัตราครู', 'การเรียนรวม', 'การใช้งาน DLTV', 'ระดับชั้นที่ใช้ DLTV', 'สภาพอุปกรณ์'].forEach(n => {
+    ['ผลการเยี่ยม', 'อัตราครู', 'การสอนตรงวิชาเอก', 'การเรียนรวม', 'การใช้งาน DLTV', 'ระดับชั้นที่ใช้ DLTV', 'สภาพอุปกรณ์'].forEach(n => {
       f.querySelectorAll(`input[name="${n}"]`).forEach(i => { i.checked = i.value === editRec[n]; });
     });
-    ['อุปกรณ์ที่มีปัญหา', 'รูปแบบการใช้ DLTV'].forEach(n => {
+    ['อุปกรณ์ที่มีปัญหา', 'รูปแบบการใช้ DLTV', 'ลักษณะการใช้ DLTV'].forEach(n => {
       const sel = String(editRec[n] || '').split(',').map(x => x.trim());
       f.querySelectorAll(`input[name="${n}"]`).forEach(i => { i.checked = sel.includes(i.value); });
     });
@@ -3432,11 +3439,12 @@ async function submitVisit(e) {
     'ชื่อรายการเดินทาง': inTrip(r) ? (TRIP.title || '') : '',
   };
   ['วันที่เยี่ยม', 'ผู้เยี่ยม', 'ผลการเยี่ยม', 'ผู้ให้ข้อมูล', 'ตำแหน่งผู้ให้ข้อมูล', 'เบอร์ผู้ให้ข้อมูล',
-   'นักเรียน ณ วันเยี่ยม', 'ครู ณ วันเยี่ยม', 'อัตราครู', 'การเรียนรวม',
+   'นักเรียน ณ วันเยี่ยม', 'ครู ณ วันเยี่ยม', 'อัตราครู', 'การสอนตรงวิชาเอก', 'การเรียนรวม',
    'การใช้งาน DLTV', 'ระดับชั้นที่ใช้ DLTV', 'สภาพอุปกรณ์',
    'ปัญหาที่พบ', 'ข้อเสนอแนะ / สิ่งที่ต้องติดตาม'].forEach(k => { visit[k] = String(fd.get(k) || '').trim(); });
   visit['อุปกรณ์ที่มีปัญหา'] = fd.getAll('อุปกรณ์ที่มีปัญหา').join(', ');
   visit['รูปแบบการใช้ DLTV'] = fd.getAll('รูปแบบการใช้ DLTV').join(', ');
+  visit['ลักษณะการใช้ DLTV'] = fd.getAll('ลักษณะการใช้ DLTV').join(', ');
   visit['ต้องติดตามต่อ'] = fd.get('ต้องติดตามต่อ') ? 'ใช่' : 'ไม่';
   if (visitGeo) {
     visit['ละติจูด (ขณะบันทึก)'] = visitGeo.lat.toFixed(6);
@@ -3525,9 +3533,9 @@ function renderModalVisits() {
         <button class="icon-btn del" onclick="deleteVisitRec('${escT(v['รหัสบันทึก'])}', ${v._pending ? 'true' : 'false'})" aria-label="ลบบันทึก">✕</button>
       </div>
       <div class="vi-body">
-        ${line('อัตราครู', v['อัตราครู'])}${line('การเรียนรวม', v['การเรียนรวม'])}
+        ${line('อัตราครู', v['อัตราครู'])}${line('การสอนตรงวิชาเอก', v['การสอนตรงวิชาเอก'])}${line('การเรียนรวม', v['การเรียนรวม'])}
         ${line('การใช้งาน DLTV', [v['การใช้งาน DLTV'], v['ระดับชั้นที่ใช้ DLTV']].filter(Boolean).join(', '))}
-        ${line('รูปแบบการใช้ DLTV', v['รูปแบบการใช้ DLTV'])}${line('สภาพอุปกรณ์', v['สภาพอุปกรณ์'])}
+        ${line('ลักษณะการใช้ DLTV', v['ลักษณะการใช้ DLTV'])}${line('รูปแบบการใช้ DLTV', v['รูปแบบการใช้ DLTV'])}${line('สภาพอุปกรณ์', v['สภาพอุปกรณ์'])}
         ${line('อุปกรณ์ที่มีปัญหา', v['อุปกรณ์ที่มีปัญหา'])}${line('ปัญหาที่พบ', v['ปัญหาที่พบ'])}
         ${line('ข้อเสนอแนะ', v['ข้อเสนอแนะ / สิ่งที่ต้องติดตาม'])}
         ${photos.length ? `<div class="vi-photos">📷 ${photos.map((u, i) => `<a href="${escT(u)}" target="_blank" rel="noopener">รูปที่ ${i + 1}</a>`).join('')}</div>` : ''}
