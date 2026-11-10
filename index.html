@@ -1098,6 +1098,85 @@ tbody td.school-name { font-weight: 500; }
 @media (max-width: 760px) {
   .tabs { gap: 16px; }
 }
+/* ═══════════════════════════════════════════════════════════
+   v4.1 — เพิ่มสีสัน (ยังคุมโทนองค์กร น้ำเงิน-ทอง)
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --c-blue: #2F6FD0;  --c-blue-soft: #EAF2FD;
+  --c-green: #2E9E6E; --c-green-soft: #E6F6EE;
+  --c-amber: #E08A1E; --c-amber-soft: #FDF1E1;
+  --c-rose: #C2416B;  --c-rose-soft: #FBE9EF;
+  --c-teal: #1A9AAE;  --c-teal-soft: #E3F5F8;
+  --c-violet: #6D5BD0; --c-violet-soft: #EFEDFB;
+  --c-gold-soft: #FDF5E1;
+  --grad: linear-gradient(135deg, #1B4B9B 0%, #2F7FD6 100%);
+}
+body {
+  background-image:
+    radial-gradient(42rem 30rem at -8% -10%, rgba(47,111,208,.10), transparent 60%),
+    radial-gradient(36rem 26rem at 108% 0%, rgba(224,164,25,.10), transparent 60%),
+    radial-gradient(40rem 30rem at 50% 115%, rgba(26,154,174,.08), transparent 60%);
+  background-attachment: fixed;
+}
+.header::before { height: 5px; background: linear-gradient(90deg, #0F2D5C 0%, #1B4B9B 45%, #2F7FD6 70%, #E0A419 70%, #F2C14E 100%); }
+.tab.active::after { background: linear-gradient(90deg, var(--accent), var(--gold)); }
+
+/* Stats: พื้นสีอ่อนตามภาค + ตัวเลขสีประจำภาค */
+.stat-card.c  { background: var(--c-blue-soft) !important;  border-color: #D3E3F8; }
+.stat-card.n  { background: var(--c-green-soft) !important; border-color: #CDEBDC; }
+.stat-card.ne { background: var(--c-amber-soft) !important; border-color: #F6DDBB; }
+.stat-card.s  { background: var(--c-rose-soft) !important;  border-color: #F3CFDC; }
+.stat-card.c .stat-val  { color: #1F5BB5; }
+.stat-card.n .stat-val  { color: #23805A; }
+.stat-card.ne .stat-val { color: #B86A0E; }
+.stat-card.s .stat-val  { color: #A8335A; }
+.stat-card:nth-child(6) { background: var(--c-teal-soft) !important; border-color: #C8E9EF; border-top: 3px solid var(--c-teal); }
+.stat-card:nth-child(6) .stat-val { color: #137C8C; }
+.stat-card.alert { background: #FDF0F1 !important; border-color: #F5D3D7; }
+.stat-card:hover, .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+.stat-card, .kpi-card { transition: transform .18s, box-shadow .18s; }
+
+/* KPI ภาพรวม: แต่ละใบมีสีของตัวเอง */
+.kpi-grid .kpi-card { border-left: 4px solid var(--kc, var(--accent)); background: var(--kb, #fff) !important; }
+.kpi-grid .kpi-card .kpi-val { color: var(--kt, var(--ink)); }
+.kpi-grid.primary .kpi-card:nth-child(2) { --kc: var(--gold);   --kb: var(--c-gold-soft);  --kt: #9A6B00; }
+.kpi-grid.primary .kpi-card:nth-child(3) { --kc: var(--c-teal); --kb: var(--c-teal-soft);  --kt: #137C8C; }
+.kpi-grid.primary .kpi-card:nth-child(4) { --kc: var(--bad);    --kb: #FDF0F1; border-top: 1px solid #F5D3D7; }
+.kpi-grid.secondary .kpi-card:nth-child(1) { --kc: var(--c-blue);   --kb: var(--c-blue-soft);   --kt: #1F5BB5; }
+.kpi-grid.secondary .kpi-card:nth-child(2) { --kc: var(--c-violet); --kb: var(--c-violet-soft); --kt: #5544B8; }
+.kpi-grid.secondary .kpi-card:nth-child(3) { --kc: var(--c-amber);  --kb: var(--c-amber-soft);  --kt: #B86A0E; }
+.kpi-grid.secondary .kpi-card:nth-child(4) { --kc: var(--c-green);  --kb: var(--c-green-soft);  --kt: #23805A; }
+.kpi-grid.secondary .kpi-card:nth-child(5) { --kc: var(--c-rose);   --kb: var(--c-rose-soft);   --kt: #A8335A; }
+.kpi-grid.primary .kpi-card:first-child { border-left: none; }
+
+/* การ์ดกราฟ: แถบสีด้านบนวนตามลำดับ + จุดสีหน้าหัวข้อ */
+.chart-card { border-top: 3px solid var(--cc, var(--accent)); }
+.chart-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+.chart-title::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: var(--cc, var(--accent)); flex-shrink: 0; }
+.chart-card:nth-of-type(6n+1) { --cc: #1B4B9B; }
+.chart-card:nth-of-type(6n+2) { --cc: #E0A419; }
+.chart-card:nth-of-type(6n+3) { --cc: #1A9AAE; }
+.chart-card:nth-of-type(6n+4) { --cc: #C2416B; }
+.chart-card:nth-of-type(6n+5) { --cc: #2E9E6E; }
+.chart-card:nth-of-type(6n+6) { --cc: #6D5BD0; }
+
+/* ปุ่ม / ตาราง / drawer */
+.btn:not(.btn-ghost):not(.btn-text), .modal-map-btn:not(.secondary), .pagination button.active,
+.mini-btn.primary, .popup-btn.primary, .opt input:checked + span, .chk:checked, .chk:indeterminate { background: var(--grad); border-color: transparent; }
+.btn:not(.btn-ghost):not(.btn-text):hover, .modal-map-btn:not(.secondary):hover { background: linear-gradient(135deg, #153C7D 0%, #1B6BC4 100%); }
+thead tr th { background: linear-gradient(180deg, #EEF3FB, #E6EDF8); color: var(--navy); }
+.modal-section { border-bottom: none; padding-left: 10px; border-left: 4px solid var(--gold); }
+.filters { border-top: 3px solid var(--accent); }
+.chart-card:has(#chartRegion) { --cc: #1B4B9B; }
+.chart-card:has(#chartYear) { --cc: #E0A419; }
+.chart-card:has(#chartSize) { --cc: #1A9AAE; }
+.chart-card:has(#chartProvince) { --cc: #C2416B; }
+.chart-card:has(#chartDgb) { --cc: #2E9E6E; }
+.chart-card:has(#chartStatus) { --cc: #6D5BD0; }
+.chart-card:has(#chartEquip) { --cc: #E08A1E; }
+.chart-card:has(#chartRatio) { --cc: #2F6FD0; }
+.chart-card:has(#workSummary) { --cc: #1A9AAE; }
+.chart-card:has(#closedCountBadge) { --cc: #E2697A; }
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
@@ -2517,7 +2596,7 @@ function renderDashboard() {
     const ch = c.chart, a = ch.chartArea;
     if (!a) return '#1B4B9B';
     const g = horizontal ? ch.ctx.createLinearGradient(a.left, 0, a.right, 0) : ch.ctx.createLinearGradient(0, a.bottom, 0, a.top);
-    g.addColorStop(0, '#1B4B9B'); g.addColorStop(1, '#2160B5');
+    g.addColorStop(0, '#1B4B9B'); g.addColorStop(1, '#1A9AAE');
     return g;
   };
   {
@@ -2608,7 +2687,7 @@ function renderDashboard() {
     { id:'chartYear', type:'bar',
       labels:['ปี 2562','ปี 2563','ปี 2564','ปี 2565','ปี 2566'],
       counts:['ปี 2562','ปี 2563','ปี 2564','ปี 2565','ปี 2566'].map(y=>d.filter(r=>r['เป้าหมายมูลนิธิ ฯ']===y).length),
-      colors:['#E0A419','#7FA8E0','#5FB08A','#1B4B9B','#A3B4CC']
+      colors:['#E0A419','#2F6FD0','#2E9E6E','#6D5BD0','#C2416B']
     },
     { id:'chartSize', type:'doughnut',
       labels:['ขนาดเล็ก','ขนาดกลาง','ขนาดใหญ่','ขยายโอกาส'],
@@ -2618,7 +2697,7 @@ function renderDashboard() {
         d.filter(r=>(r['ประเภท']||'').includes('ขนาดใหญ่')&&!(r['ประเภท']||'').includes('ขยาย')).length,
         d.filter(r=>(r['ประเภท']||'').includes('ขยายโอกาส')).length,
       ],
-      colors:['#7FA8E0','#1B4B9B','#F0C75E','#5FB08A']
+      colors:['#1A9AAE','#1B4B9B','#E0A419','#C2416B']
     },
   ];
 
